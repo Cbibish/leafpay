@@ -1,0 +1,29 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "leafpay",
+    "buildTool": "maven",
+    "cacheProvider": "caffeine",
+    "creationTimestamp": 1753049782451,
+    "databaseType": "sql",
+    "devDatabaseType": "mysql",
+    "enableHibernateCache": true,
+    "enableTranslation": true,
+    "entities": [],
+    "feignClient": null,
+    "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "OGUzMGQ0NDZiNzBhMjZiM2M1ZmQyMmI5MGMxZDI4ZmI2MjAwOGQ0MGIyM2E5NWEyNzZlZmMxODkxYWVlNTBjY2UxNzRjMTk5MDJiODMyNjUxYTJlYTVhNmNkNmY5MzNjNWEzZDdiNWRjMGZmZWJjMWRkYTUxNjM3N2VhZGYzNTk=",
+    "languages": ["en"],
+    "nativeLanguage": "en",
+    "packageName": "com.leafpay",
+    "prodDatabaseType": "mysql",
+    "reactive": false,
+    "serverPort": null,
+    "serviceDiscoveryType": null,
+    "skipClient": true,
+    "skipUserManagement": true,
+    "syncUserWithIdp": null,
+    "testFrameworks": []
+  }
+}

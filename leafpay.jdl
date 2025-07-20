@@ -1,0 +1,69 @@
+entity Role {
+  nom String required maxlength(50)
+}
+
+entity Utilisateur {
+  nom String required maxlength(100)
+  prenom String required maxlength(100)
+  email String required maxlength(255)
+  motDePasse String required maxlength(255)
+  dateNaissance LocalDate
+  typeJustificatifAge String maxlength(255)
+  statut String maxlength(50)
+  dateCreation Instant
+}
+
+entity Compte {
+  typeCompte String maxlength(50)
+  solde BigDecimal
+  plafondTransaction BigDecimal
+  limiteRetraitsMensuels Integer
+  tauxInteret BigDecimal
+  dateOuverture Instant
+  dateFermeture Instant
+  statut String maxlength(50)
+  iban String maxlength(34)
+}
+
+entity UtilisateurCompte {
+  roleUtilisateurSurCeCompte String maxlength(100)
+}
+
+entity Transaction {
+  montant BigDecimal
+  typeTransaction String maxlength(50)
+  dateTransaction Instant
+  statut String maxlength(50)
+  moyenValidation String maxlength(255)
+  justificatif TextBlob
+}
+
+entity Log {
+  action String maxlength(255)
+  timestamp Instant
+  ipUtilisateur String maxlength(50)
+  resultat String maxlength(50)
+  description TextBlob
+}
+
+entity AlerteSecurite {
+  typeAlerte String maxlength(100)
+  niveauSeverite String maxlength(50)
+  timestamp Instant
+  estTraitee Boolean
+}
+
+relationship ManyToOne {
+  Utilisateur{idRole} to Role
+  Log to Utilisateur
+  AlerteSecurite to Utilisateur
+  Transaction{compteSource} to Compte
+}
+
+relationship ManyToMany {
+  Utilisateur{comptes} to Compte{utilisateurs} with UtilisateurCompte
+}
+
+paginate all with pagination
+service all with serviceClass
+dto all with mapstruct
