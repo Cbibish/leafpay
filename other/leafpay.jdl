@@ -58,10 +58,9 @@ relationship ManyToOne {
   Log to Utilisateur
   AlerteSecurite to Utilisateur
   Transaction{compteSource} to Compte
-}
-
-relationship ManyToMany {
-  Utilisateur{comptes} to Compte{utilisateurs} with UtilisateurCompte
+  Transaction{compteDestination} to Compte
+  UtilisateurCompte{utilisateur} to Utilisateur
+  UtilisateurCompte{compte} to Compte
 }
 
 paginate all with pagination

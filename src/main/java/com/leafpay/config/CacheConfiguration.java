@@ -41,6 +41,15 @@ public class CacheConfiguration {
     @Bean
     public JCacheManagerCustomizer cacheManagerCustomizer() {
         return cm -> {
+            createCache(cm, com.leafpay.domain.Role.class.getName());
+            createCache(cm, com.leafpay.domain.Utilisateur.class.getName());
+            createCache(cm, com.leafpay.domain.Utilisateur.class.getName() + ".logs");
+            createCache(cm, com.leafpay.domain.Utilisateur.class.getName() + ".alerteSecurites");
+            createCache(cm, com.leafpay.domain.Compte.class.getName());
+            createCache(cm, com.leafpay.domain.UtilisateurCompte.class.getName());
+            createCache(cm, com.leafpay.domain.Transaction.class.getName());
+            createCache(cm, com.leafpay.domain.Log.class.getName());
+            createCache(cm, com.leafpay.domain.AlerteSecurite.class.getName());
             // jhipster-needle-caffeine-add-entry
         };
     }

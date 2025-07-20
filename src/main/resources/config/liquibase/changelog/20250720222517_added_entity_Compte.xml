@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Added the entity Compte.
+    -->
+    <changeSet id="20250720222517-1" author="jhipster">
+        <createTable tableName="compte">
+            <column name="id" type="bigint" autoIncrement="true" startWith="1500">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type_compte" type="varchar(50)">
+                <constraints nullable="true" />
+            </column>
+            <column name="solde" type="decimal(21,2)">
+                <constraints nullable="true" />
+            </column>
+            <column name="plafond_transaction" type="decimal(21,2)">
+                <constraints nullable="true" />
+            </column>
+            <column name="limite_retraits_mensuels" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="taux_interet" type="decimal(21,2)">
+                <constraints nullable="true" />
+            </column>
+            <column name="date_ouverture" type="${datetimeType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="date_fermeture" type="${datetimeType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="statut" type="varchar(50)">
+                <constraints nullable="true" />
+            </column>
+            <column name="iban" type="varchar(34)">
+                <constraints nullable="true" />
+            </column>
+            <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
+        </createTable>
+        <dropDefaultValue tableName="compte" columnName="date_ouverture" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="compte" columnName="date_fermeture" columnDataType="${datetimeType}"/>
+    </changeSet>
+
+    <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
+
+    <!--
+        Load sample data generated with Faker.js
+        - This data can be easily edited using a CSV editor (or even MS Excel) and
+          is located in the 'src/main/resources/config/liquibase/fake-data' directory
+        - By default this data is applied when running with the JHipster 'dev' profile.
+          This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
+          Spring Boot configuration key.
+    -->
+    <changeSet id="20250720222517-1-data" author="jhipster" context="faker">
+        <loadData
+                  file="config/liquibase/fake-data/compte.csv"
+                  separator=";"
+                  tableName="compte"
+                  usePreparedStatements="true">
+            <column name="id" type="numeric"/>
+            <column name="type_compte" type="string"/>
+            <column name="solde" type="numeric"/>
+            <column name="plafond_transaction" type="numeric"/>
+            <column name="limite_retraits_mensuels" type="numeric"/>
+            <column name="taux_interet" type="numeric"/>
+            <column name="date_ouverture" type="date"/>
+            <column name="date_fermeture" type="date"/>
+            <column name="statut" type="string"/>
+            <column name="iban" type="string"/>
+            <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

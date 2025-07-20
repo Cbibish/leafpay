@@ -1,0 +1,56 @@
+{
+  "annotations": {
+    "changelogDate": "20250720222517"
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "typeCompte",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "solde",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "plafondTransaction",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "limiteRetraitsMensuels",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "tauxInteret",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "dateOuverture",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "dateFermeture",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "statut",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "iban",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "34"
+    }
+  ],
+  "name": "Compte",
+  "pagination": "pagination",
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}
