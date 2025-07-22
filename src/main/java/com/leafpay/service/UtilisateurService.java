@@ -1,6 +1,8 @@
 package com.leafpay.service;
 
+import com.leafpay.domain.Role;
 import com.leafpay.domain.Utilisateur;
+import com.leafpay.repository.RoleRepository;
 import com.leafpay.repository.UtilisateurRepository;
 import com.leafpay.service.dto.UtilisateurDTO;
 import com.leafpay.service.mapper.UtilisateurMapper;
@@ -9,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +28,20 @@ public class UtilisateurService {
 
     private final UtilisateurMapper utilisateurMapper;
 
-    public UtilisateurService(UtilisateurRepository utilisateurRepository, UtilisateurMapper utilisateurMapper) {
+    private final RoleRepository roleRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public UtilisateurService(
+        UtilisateurRepository utilisateurRepository,
+        UtilisateurMapper utilisateurMapper,
+        RoleRepository roleRepository,
+        PasswordEncoder passwordEncoder
+    ) {
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -39,6 +53,21 @@ public class UtilisateurService {
     public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
         LOG.debug("Request to save Utilisateur : {}", utilisateurDTO);
         Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
+
+        // Encode password if it's not null or empty
+        if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
+            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+        }
+
+        if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getNom() != null) {
+            Role role = roleRepository
+                .findByNom(utilisateurDTO.getRole().getNom())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
+            utilisateur.setRole(role);
+        } else {
+            throw new IllegalArgumentException("Role must be provided when registering a user.");
+        }
+
         utilisateur = utilisateurRepository.save(utilisateur);
         return utilisateurMapper.toDto(utilisateur);
     }
@@ -49,9 +78,23 @@ public class UtilisateurService {
      * @param utilisateurDTO the entity to save.
      * @return the persisted entity.
      */
+
     public UtilisateurDTO update(UtilisateurDTO utilisateurDTO) {
         LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
         Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
+
+        // Encode password if present
+        if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
+            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+        }
+
+        if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
+            Role role = roleRepository
+                .findById(utilisateurDTO.getRole().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+            utilisateur.setRole(role);
+        }
+
         utilisateur = utilisateurRepository.save(utilisateur);
         return utilisateurMapper.toDto(utilisateur);
     }
@@ -69,6 +112,13 @@ public class UtilisateurService {
             .findById(utilisateurDTO.getId())
             .map(existingUtilisateur -> {
                 utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+
+                if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
+                    Role role = roleRepository
+                        .findById(utilisateurDTO.getRole().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+                    existingUtilisateur.setRole(role);
+                }
 
                 return existingUtilisateur;
             })

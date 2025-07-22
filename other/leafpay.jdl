@@ -54,7 +54,7 @@ entity AlerteSecurite {
 }
 
 relationship ManyToOne {
-  Utilisateur{idRole} to Role
+  Utilisateur{setRole} to Role
   Log to Utilisateur
   AlerteSecurite to Utilisateur
   Transaction{compteSource} to Compte

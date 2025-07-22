@@ -40,7 +40,7 @@ public class UtilisateurDTO implements Serializable {
 
     private Instant dateCreation;
 
-    private RoleDTO idRole;
+    private RoleDTO role;
 
     public Long getId() {
         return id;
@@ -114,12 +114,12 @@ public class UtilisateurDTO implements Serializable {
         this.dateCreation = dateCreation;
     }
 
-    public RoleDTO getIdRole() {
-        return idRole;
+    public RoleDTO getRole() {
+        return role;
     }
 
-    public void setIdRole(RoleDTO idRole) {
-        this.idRole = idRole;
+    public void setRole(RoleDTO role) {
+        this.role = role;
     }
 
     @Override
@@ -147,16 +147,16 @@ public class UtilisateurDTO implements Serializable {
     @Override
     public String toString() {
         return "UtilisateurDTO{" +
-            "id=" + getId() +
-            ", nom='" + getNom() + "'" +
-            ", prenom='" + getPrenom() + "'" +
-            ", email='" + getEmail() + "'" +
-            ", motDePasse='" + getMotDePasse() + "'" +
-            ", dateNaissance='" + getDateNaissance() + "'" +
-            ", typeJustificatifAge='" + getTypeJustificatifAge() + "'" +
-            ", statut='" + getStatut() + "'" +
-            ", dateCreation='" + getDateCreation() + "'" +
-            ", idRole=" + getIdRole() +
-            "}";
+                "id=" + getId() +
+                ", nom='" + getNom() + "'" +
+                ", prenom='" + getPrenom() + "'" +
+                ", email='" + getEmail() + "'" +
+                ", motDePasse='" + getMotDePasse() + "'" +
+                ", dateNaissance='" + getDateNaissance() + "'" +
+                ", typeJustificatifAge='" + getTypeJustificatifAge() + "'" +
+                ", statut='" + getStatut() + "'" +
+                ", dateCreation='" + getDateCreation() + "'" +
+                ", role=" + getRole() +
+                "}";
     }
 }

@@ -19,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
@@ -54,7 +56,9 @@ public class UtilisateurCompteResource {
      * {@code POST  /utilisateur-comptes} : Create a new utilisateurCompte.
      *
      * @param utilisateurCompteDTO the utilisateurCompteDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new utilisateurCompteDTO, or with status {@code 400 (Bad Request)} if the utilisateurCompte has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new utilisateurCompteDTO, or with status
+     *         {@code 400 (Bad Request)} if the utilisateurCompte has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
@@ -71,13 +75,17 @@ public class UtilisateurCompteResource {
     }
 
     /**
-     * {@code PUT  /utilisateur-comptes/:id} : Updates an existing utilisateurCompte.
+     * {@code PUT  /utilisateur-comptes/:id} : Updates an existing
+     * utilisateurCompte.
      *
-     * @param id the id of the utilisateurCompteDTO to save.
+     * @param id                   the id of the utilisateurCompteDTO to save.
      * @param utilisateurCompteDTO the utilisateurCompteDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated utilisateurCompteDTO,
-     * or with status {@code 400 (Bad Request)} if the utilisateurCompteDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the utilisateurCompteDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated utilisateurCompteDTO,
+     *         or with status {@code 400 (Bad Request)} if the utilisateurCompteDTO
+     *         is not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         utilisateurCompteDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
@@ -104,14 +112,19 @@ public class UtilisateurCompteResource {
     }
 
     /**
-     * {@code PATCH  /utilisateur-comptes/:id} : Partial updates given fields of an existing utilisateurCompte, field will ignore if it is null
+     * {@code PATCH  /utilisateur-comptes/:id} : Partial updates given fields of an
+     * existing utilisateurCompte, field will ignore if it is null
      *
-     * @param id the id of the utilisateurCompteDTO to save.
+     * @param id                   the id of the utilisateurCompteDTO to save.
      * @param utilisateurCompteDTO the utilisateurCompteDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated utilisateurCompteDTO,
-     * or with status {@code 400 (Bad Request)} if the utilisateurCompteDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the utilisateurCompteDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the utilisateurCompteDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated utilisateurCompteDTO,
+     *         or with status {@code 400 (Bad Request)} if the utilisateurCompteDTO
+     *         is not valid,
+     *         or with status {@code 404 (Not Found)} if the utilisateurCompteDTO is
+     *         not found,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         utilisateurCompteDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
@@ -143,7 +156,8 @@ public class UtilisateurCompteResource {
      * {@code GET  /utilisateur-comptes} : get all the utilisateurComptes.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of utilisateurComptes in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of utilisateurComptes in body.
      */
     @GetMapping("")
     public ResponseEntity<List<UtilisateurCompteDTO>> getAllUtilisateurComptes(
@@ -159,13 +173,29 @@ public class UtilisateurCompteResource {
      * {@code GET  /utilisateur-comptes/:id} : get the "id" utilisateurCompte.
      *
      * @param id the id of the utilisateurCompteDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the utilisateurCompteDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the utilisateurCompteDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<UtilisateurCompteDTO> getUtilisateurCompte(@PathVariable("id") Long id) {
         LOG.debug("REST request to get UtilisateurCompte : {}", id);
         Optional<UtilisateurCompteDTO> utilisateurCompteDTO = utilisateurCompteService.findOne(id);
         return ResponseUtil.wrapOrNotFound(utilisateurCompteDTO);
+    }
+
+    /**
+     * {@code GET  /utilisateur-comptes/:id} : get the "id" utilisateurCompte. Will
+     * return all instances, not only one.
+     *
+     * @param id the id of the utilisateurCompteDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the utilisateurCompteDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/utilisateur/{utilisateurId}")
+    public ResponseEntity<List<UtilisateurCompteDTO>> getByUtilisateurId(@PathVariable Long utilisateurId, Pageable pageable) {
+        Page<UtilisateurCompteDTO> page = utilisateurCompteService.findByUtilisateurId(utilisateurId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**

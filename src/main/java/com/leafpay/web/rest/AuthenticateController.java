@@ -4,6 +4,7 @@ import static com.leafpay.security.SecurityUtils.AUTHORITIES_CLAIM;
 import static com.leafpay.security.SecurityUtils.JWT_ALGORITHM;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.leafpay.service.enums.UserRole;
 import com.leafpay.web.rest.vm.LoginVM;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -70,7 +71,7 @@ public class AuthenticateController {
      * {@code GET /authenticate} : check if the user is authenticated.
      *
      * @return the {@link ResponseEntity} with status {@code 204 (No Content)},
-     * or with status {@code 401 (Unauthorized)} if not authenticated.
+     *         or with status {@code 401 (Unauthorized)} if not authenticated.
      */
     @GetMapping("/authenticate")
     public ResponseEntity<Void> isAuthenticated(Principal principal) {
@@ -79,22 +80,34 @@ public class AuthenticateController {
     }
 
     public String createToken(Authentication authentication, boolean rememberMe) {
-        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
-
         Instant now = Instant.now();
-        Instant validity;
-        if (rememberMe) {
-            validity = now.plus(this.tokenValidityInSecondsForRememberMe, ChronoUnit.SECONDS);
-        } else {
-            validity = now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
+        Instant validity = rememberMe
+            ? now.plus(this.tokenValidityInSecondsForRememberMe, ChronoUnit.SECONDS)
+            : now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
+
+        // Get role name from authorities or your user details
+        String roleName = authentication
+            .getAuthorities()
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .filter(r -> !r.isEmpty())
+            .findFirst()
+            .orElse("NORMAL_USER"); // fallback
+
+        // Map roleName string to your enum, fallback to NORMAL_USER if invalid
+        UserRole roleEnum;
+        try {
+            roleEnum = UserRole.valueOf(roleName);
+        } catch (IllegalArgumentException e) {
+            roleEnum = UserRole.NORMAL_USER;
         }
 
-        // @formatter:off
         JwtClaimsSet.Builder builder = JwtClaimsSet.builder()
             .issuedAt(now)
             .expiresAt(validity)
             .subject(authentication.getName())
-            .claim(AUTHORITIES_CLAIM, authorities);
+            .claim(AUTHORITIES_CLAIM, roleName) // or authorities string if preferred
+            .claim("role", roleEnum.name()); // add your role claim
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, builder.build())).getTokenValue();

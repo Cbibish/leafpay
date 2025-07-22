@@ -28,15 +28,15 @@ class UtilisateurTest {
     }
 
     @Test
-    void idRoleTest() {
+    void setRoleTest() {
         Utilisateur utilisateur = getUtilisateurRandomSampleGenerator();
         Role roleBack = getRoleRandomSampleGenerator();
 
-        utilisateur.setIdRole(roleBack);
-        assertThat(utilisateur.getIdRole()).isEqualTo(roleBack);
+        utilisateur.setRole(roleBack);
+        assertThat(utilisateur.getRole()).isEqualTo(roleBack);
 
-        utilisateur.idRole(null);
-        assertThat(utilisateur.getIdRole()).isNull();
+        utilisateur.setRole(null);
+        assertThat(utilisateur.getRole()).isNull();
     }
 
     @Test

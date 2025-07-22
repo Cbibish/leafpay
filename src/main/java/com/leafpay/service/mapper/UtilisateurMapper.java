@@ -11,11 +11,15 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface UtilisateurMapper extends EntityMapper<UtilisateurDTO, Utilisateur> {
-    @Mapping(target = "idRole", source = "idRole", qualifiedByName = "roleId")
-    UtilisateurDTO toDto(Utilisateur s);
+    @Mapping(source = "role", target = "role")
+    UtilisateurDTO toDto(Utilisateur utilisateur);
+
+    @Mapping(source = "role", target = "role")
+    Utilisateur toEntity(UtilisateurDTO utilisateurDTO);
 
     @Named("roleId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "nom", source = "nom")
     RoleDTO toDtoRoleId(Role role);
 }

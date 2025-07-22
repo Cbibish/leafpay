@@ -68,6 +68,6 @@ public class UtilisateurAsserts {
     public static void assertUtilisateurUpdatableRelationshipsEquals(Utilisateur expected, Utilisateur actual) {
         assertThat(actual)
             .as("Verify Utilisateur relationships")
-            .satisfies(a -> assertThat(a.getIdRole()).as("check idRole").isEqualTo(expected.getIdRole()));
+            .satisfies(a -> assertThat(a.getRole()).as("check setRole").isEqualTo(expected.getRole()));
     }
 }

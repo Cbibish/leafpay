@@ -39,7 +39,7 @@ public class AlerteSecurite implements Serializable {
     private Boolean estTraitee;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "idRole", "logs", "alerteSecurites" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "setRole", "logs", "alerteSecurites" }, allowSetters = true)
     private Utilisateur utilisateur;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

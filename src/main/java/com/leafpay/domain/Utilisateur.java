@@ -62,7 +62,8 @@ public class Utilisateur implements Serializable {
     private Instant dateCreation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private Role idRole;
+    @JoinColumn(name = "id_role_id") // add this for clarity, specifying the FK column name
+    private Role role;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "utilisateur")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -193,16 +194,16 @@ public class Utilisateur implements Serializable {
         this.dateCreation = dateCreation;
     }
 
-    public Role getIdRole() {
-        return this.idRole;
+    public Role getRole() {
+        return this.role;
     }
 
-    public void setIdRole(Role role) {
-        this.idRole = role;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public Utilisateur idRole(Role role) {
-        this.setIdRole(role);
+    public Utilisateur role(Role role) {
+        this.setRole(role);
         return this;
     }
 

@@ -44,7 +44,7 @@ public class Log implements Serializable {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "idRole", "logs", "alerteSecurites" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "setRole", "logs", "alerteSecurites" }, allowSetters = true)
     private Utilisateur utilisateur;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

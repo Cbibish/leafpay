@@ -11,7 +11,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A UtilisateurCompte.
  */
 @Entity
-@Table(name = "utilisateur_compte")
+@Table(name = "utilisateur_compte", uniqueConstraints = { @UniqueConstraint(columnNames = { "utilisateur_id", "compte_id" }) })
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class UtilisateurCompte implements Serializable {
@@ -28,7 +28,7 @@ public class UtilisateurCompte implements Serializable {
     private String roleUtilisateurSurCeCompte;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "idRole", "logs", "alerteSecurites" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "setRole", "logs", "alerteSecurites" }, allowSetters = true)
     private Utilisateur utilisateur;
 
     @ManyToOne(fetch = FetchType.LAZY)

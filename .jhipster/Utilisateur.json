@@ -55,7 +55,7 @@
   "relationships": [
     {
       "otherEntityName": "role",
-      "relationshipName": "idRole",
+      "relationshipName": "setRole",
       "relationshipSide": "left",
       "relationshipType": "many-to-one"
     },

@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.leafpay.domain.UtilisateurCompte}.
+ * Service Implementation for managing
+ * {@link com.leafpay.domain.UtilisateurCompte}.
  */
 @Service
 @Transactional
@@ -39,11 +40,23 @@ public class UtilisateurCompteService {
      * @param utilisateurCompteDTO the entity to save.
      * @return the persisted entity.
      */
-    public UtilisateurCompteDTO save(UtilisateurCompteDTO utilisateurCompteDTO) {
-        LOG.debug("Request to save UtilisateurCompte : {}", utilisateurCompteDTO);
-        UtilisateurCompte utilisateurCompte = utilisateurCompteMapper.toEntity(utilisateurCompteDTO);
-        utilisateurCompte = utilisateurCompteRepository.save(utilisateurCompte);
-        return utilisateurCompteMapper.toDto(utilisateurCompte);
+    public UtilisateurCompteDTO save(UtilisateurCompteDTO dto) {
+        Long utilisateurId = dto.getUtilisateur().getId();
+        Long compteId = dto.getCompte().getId();
+        String role = dto.getRoleUtilisateurSurCeCompte();
+
+        boolean exists = utilisateurCompteRepository.existsByUtilisateurIdAndCompteIdAndRoleUtilisateurSurCeCompte(
+            utilisateurId,
+            compteId,
+            role
+        );
+        if (exists) {
+            throw new IllegalStateException("Duplicate UtilisateurCompte with same utilisateur, compte and role");
+        }
+
+        UtilisateurCompte entity = utilisateurCompteMapper.toEntity(dto);
+        entity = utilisateurCompteRepository.save(entity);
+        return utilisateurCompteMapper.toDto(entity);
     }
 
     /**
@@ -101,6 +114,18 @@ public class UtilisateurCompteService {
     public Optional<UtilisateurCompteDTO> findOne(Long id) {
         LOG.debug("Request to get UtilisateurCompte : {}", id);
         return utilisateurCompteRepository.findById(id).map(utilisateurCompteMapper::toDto);
+    }
+
+    /**
+     * Get all utilisateurCompte instances by user id.
+     *
+     * @param id the id of the entity.
+     * @return the entity.
+     */
+    @Transactional(readOnly = true)
+    public Page<UtilisateurCompteDTO> findByUtilisateurId(Long utilisateurId, Pageable pageable) {
+        LOG.debug("Request to get UtilisateurComptes by utilisateurId : {}", utilisateurId);
+        return utilisateurCompteRepository.findByUtilisateurId(utilisateurId, pageable).map(utilisateurCompteMapper::toDto);
     }
 
     /**
