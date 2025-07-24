@@ -1,0 +1,117 @@
+<div class="app-content">
+  <div class="container mt-5">
+    <h2 class="text-center fw-bold mb-4">Bienvenu dans votre espace client</h2>
+
+    <!-- Tabs -->
+    <div class="btn-group mb-4">
+      <button
+        class="btn"
+        [ngClass]="{
+          'btn-success text-white': activeTab === 'account',
+          'btn-outline-secondary': activeTab !== 'account',
+        }"
+        (click)="setTab('account')"
+      >
+        📄 Mon Compte
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{
+          'btn-success text-white': activeTab === 'money',
+          'btn-outline-secondary': activeTab !== 'money',
+        }"
+        (click)="setTab('money')"
+      >
+        💰 Gérer mon argent
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{
+          'btn-success text-white': activeTab === 'transfer',
+          'btn-outline-secondary': activeTab !== 'transfer',
+        }"
+        (click)="setTab('transfer')"
+      >
+        📤 Virement externe
+      </button>
+    </div>
+
+    <h3 class="text-success fw-bold mb-4">Mes comptes</h3>
+
+    <!-- Tab Content -->
+    <div *ngIf="activeTab === 'account'">
+      <!-- Mon Compte -->
+      <div class="card p-4 mb-3">
+        <h5 class="fw-bold">Details de compte Standart</h5>
+        <p><strong>Solde total :</strong> 11 124,00 €</p>
+        <p><strong>Historique de transactions</strong></p>
+        <ul>
+          <li>Retrait carte XXXX XXXX XXXX : -50 €</li>
+          <li>Salaire mensuel : 5000 €</li>
+          <li>Virement SEPA : -2500 €</li>
+        </ul>
+      </div>
+
+      <div class="card p-4">
+        <h5 class="fw-bold">Details de compte Épargne</h5>
+        <p><strong>Solde total :</strong> 23 923,00 €</p>
+        <p><strong>Historique de transactions</strong></p>
+        <ul>
+          <li>Virement depuis compte Standart 1531546521 : 200€</li>
+          <li>Virement depuis compte Standart 1531546521 : 200€</li>
+          <li>Virement depuis compte Standart 1531546521 : 200€</li>
+        </ul>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'money'">
+      <!-- Gérer mon argent -->
+      <div class="card p-4">
+        <h5 class="text-success fw-bold mb-3">Dépôt / Retrait</h5>
+
+        <div class="mb-3">
+          <label class="form-label">Montant (€)</label>
+          <input type="number" class="form-control" placeholder="Ex : 100" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Type d'opération</label>
+          <select class="form-select">
+            <option value="retrait">Retrait</option>
+            <option value="depot">Dépôt</option>
+          </select>
+        </div>
+
+        <button class="btn btn-success">Valider</button>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'transfer'">
+      <!-- Virement externe -->
+      <div class="card p-4">
+        <h5 class="fw-bold mb-3">Derniers virements</h5>
+        <div class="border p-3 mb-3 rounded">
+          <p>
+            <strong>Depuis Compte Standart 1531546521</strong>
+            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
+            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
+          </p>
+        </div>
+        <div class="border p-3 mb-3 rounded">
+          <p>
+            <strong>Depuis Compte Standart 1531546521</strong>
+            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
+            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
+          </p>
+        </div>
+        <div class="border p-3 rounded">
+          <p>
+            <strong>Depuis Compte Standart 1531546521</strong>
+            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
+            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

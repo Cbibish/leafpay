@@ -33,6 +33,11 @@ const routes: Routes = [
     path: '',
     loadChildren: () => import(`./entities/entity.routes`),
   },
+  {
+    path: 'client-dashboard',
+    loadComponent: () => import(`./client-dashboard/client-dashboard.component`).then(m => m.ClientDashboardComponent),
+    title: 'client-dashboard.title',
+  },
   ...errorRoute,
 ];
 
