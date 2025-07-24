@@ -1,0 +1,54 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (alerteSecurite(); as alerteSecuriteRef) {
+      <div>
+        <h2 data-cy="alerteSecuriteDetailsHeading"><span jhiTranslate="leafpayApp.alerteSecurite.detail.title">Alerte Securite</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ alerteSecuriteRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.alerteSecurite.typeAlerte">Type Alerte</span></dt>
+          <dd>
+            <span>{{ alerteSecuriteRef.typeAlerte }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.alerteSecurite.niveauSeverite">Niveau Severite</span></dt>
+          <dd>
+            <span>{{ alerteSecuriteRef.niveauSeverite }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.alerteSecurite.timestamp">Timestamp</span></dt>
+          <dd>
+            <span>{{ alerteSecuriteRef.timestamp | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.alerteSecurite.estTraitee">Est Traitee</span></dt>
+          <dd>
+            <span>{{ alerteSecuriteRef.estTraitee }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.alerteSecurite.utilisateur">Utilisateur</span></dt>
+          <dd>
+            @if (alerteSecurite()!.utilisateur) {
+              <div>
+                <a [routerLink]="['/utilisateur', alerteSecurite()!.utilisateur?.id, 'view']">{{ alerteSecuriteRef.utilisateur?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/alerte-securite', alerteSecuriteRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

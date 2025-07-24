@@ -22,7 +22,8 @@
     "reactive": false,
     "serverPort": null,
     "serviceDiscoveryType": null,
-    "skipClient": true,
+    "skipClient": false,
+    "skipServer": true,
     "skipUserManagement": true,
     "syncUserWithIdp": null,
     "testFrameworks": []

@@ -1,0 +1,70 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (transaction(); as transactionRef) {
+      <div>
+        <h2 data-cy="transactionDetailsHeading"><span jhiTranslate="leafpayApp.transaction.detail.title">Transaction</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ transactionRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.montant">Montant</span></dt>
+          <dd>
+            <span>{{ transactionRef.montant }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.typeTransaction">Type Transaction</span></dt>
+          <dd>
+            <span>{{ transactionRef.typeTransaction }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.dateTransaction">Date Transaction</span></dt>
+          <dd>
+            <span>{{ transactionRef.dateTransaction | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.statut">Statut</span></dt>
+          <dd>
+            <span>{{ transactionRef.statut }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.moyenValidation">Moyen Validation</span></dt>
+          <dd>
+            <span>{{ transactionRef.moyenValidation }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.justificatif">Justificatif</span></dt>
+          <dd>
+            <span>{{ transactionRef.justificatif }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.compteSource">Compte Source</span></dt>
+          <dd>
+            @if (transaction()!.compteSource) {
+              <div>
+                <a [routerLink]="['/compte', transaction()!.compteSource?.id, 'view']">{{ transactionRef.compteSource?.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.transaction.compteDestination">Compte Destination</span></dt>
+          <dd>
+            @if (transaction()!.compteDestination) {
+              <div>
+                <a [routerLink]="['/compte', transaction()!.compteDestination?.id, 'view']">{{ transactionRef.compteDestination?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/transaction', transactionRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

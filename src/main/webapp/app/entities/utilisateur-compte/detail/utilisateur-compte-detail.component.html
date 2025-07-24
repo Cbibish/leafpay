@@ -1,0 +1,54 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (utilisateurCompte(); as utilisateurCompteRef) {
+      <div>
+        <h2 data-cy="utilisateurCompteDetailsHeading">
+          <span jhiTranslate="leafpayApp.utilisateurCompte.detail.title">Utilisateur Compte</span>
+        </h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ utilisateurCompteRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateurCompte.roleUtilisateurSurCeCompte">Role Utilisateur Sur Ce Compte</span></dt>
+          <dd>
+            <span>{{ utilisateurCompteRef.roleUtilisateurSurCeCompte }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateurCompte.utilisateur">Utilisateur</span></dt>
+          <dd>
+            @if (utilisateurCompte()!.utilisateur) {
+              <div>
+                <a [routerLink]="['/utilisateur', utilisateurCompte()!.utilisateur?.id, 'view']">{{
+                  utilisateurCompteRef.utilisateur?.id
+                }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateurCompte.compte">Compte</span></dt>
+          <dd>
+            @if (utilisateurCompte()!.compte) {
+              <div>
+                <a [routerLink]="['/compte', utilisateurCompte()!.compte?.id, 'view']">{{ utilisateurCompteRef.compte?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/utilisateur-compte', utilisateurCompteRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

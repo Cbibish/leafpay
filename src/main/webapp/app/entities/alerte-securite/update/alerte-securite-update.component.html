@@ -1,0 +1,130 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2
+        id="jhi-alerte-securite-heading"
+        data-cy="AlerteSecuriteCreateUpdateHeading"
+        jhiTranslate="leafpayApp.alerteSecurite.home.createOrEditLabel"
+      >
+        Create or edit a Alerte Securite
+      </h2>
+
+      <div>
+        <jhi-alert-error />
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="leafpayApp.alerteSecurite.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        @let typeAlerteRef = editForm.get('typeAlerte')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_typeAlerte" jhiTranslate="leafpayApp.alerteSecurite.typeAlerte">Type Alerte</label>
+          <input
+            type="text"
+            class="form-control"
+            name="typeAlerte"
+            id="field_typeAlerte"
+            data-cy="typeAlerte"
+            formControlName="typeAlerte"
+          />
+          @if (typeAlerteRef.invalid && (typeAlerteRef.dirty || typeAlerteRef.touched)) {
+            <div>
+              @if (editForm.get('typeAlerte')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '100' }"
+                  >This field cannot be longer than 100 characters.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        @let niveauSeveriteRef = editForm.get('niveauSeverite')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_niveauSeverite" jhiTranslate="leafpayApp.alerteSecurite.niveauSeverite"
+            >Niveau Severite</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="niveauSeverite"
+            id="field_niveauSeverite"
+            data-cy="niveauSeverite"
+            formControlName="niveauSeverite"
+          />
+          @if (niveauSeveriteRef.invalid && (niveauSeveriteRef.dirty || niveauSeveriteRef.touched)) {
+            <div>
+              @if (editForm.get('niveauSeverite')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
+                  >This field cannot be longer than 50 characters.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_timestamp" jhiTranslate="leafpayApp.alerteSecurite.timestamp">Timestamp</label>
+          <div class="d-flex">
+            <input
+              id="field_timestamp"
+              data-cy="timestamp"
+              type="datetime-local"
+              class="form-control"
+              name="timestamp"
+              formControlName="timestamp"
+              placeholder="YYYY-MM-DD HH:mm"
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_estTraitee" jhiTranslate="leafpayApp.alerteSecurite.estTraitee">Est Traitee</label>
+          <input
+            type="checkbox"
+            class="form-check"
+            name="estTraitee"
+            id="field_estTraitee"
+            data-cy="estTraitee"
+            formControlName="estTraitee"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_utilisateur" jhiTranslate="leafpayApp.alerteSecurite.utilisateur">Utilisateur</label>
+          <select
+            class="form-control"
+            id="field_utilisateur"
+            data-cy="utilisateur"
+            name="utilisateur"
+            formControlName="utilisateur"
+            [compareWith]="compareUtilisateur"
+          >
+            <option [ngValue]="null"></option>
+            @for (utilisateurOption of utilisateursSharedCollection; track $index) {
+              <option [ngValue]="utilisateurOption">{{ utilisateurOption.id }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

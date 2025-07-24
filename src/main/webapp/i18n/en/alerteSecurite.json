@@ -1,0 +1,28 @@
+{
+  "leafpayApp": {
+    "alerteSecurite": {
+      "home": {
+        "title": "Alerte Securites",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Alerte Securite",
+        "createOrEditLabel": "Create or edit a Alerte Securite",
+        "notFound": "No Alerte Securites found"
+      },
+      "created": "A new Alerte Securite is created with identifier {{ param }}",
+      "updated": "A Alerte Securite is updated with identifier {{ param }}",
+      "deleted": "A Alerte Securite is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Alerte Securite {{ id }}?"
+      },
+      "detail": {
+        "title": "Alerte Securite"
+      },
+      "id": "ID",
+      "typeAlerte": "Type Alerte",
+      "niveauSeverite": "Niveau Severite",
+      "timestamp": "Timestamp",
+      "estTraitee": "Est Traitee",
+      "utilisateur": "Utilisateur"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (compte(); as compteRef) {
+      <div>
+        <h2 data-cy="compteDetailsHeading"><span jhiTranslate="leafpayApp.compte.detail.title">Compte</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ compteRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.typeCompte">Type Compte</span></dt>
+          <dd>
+            <span>{{ compteRef.typeCompte }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.solde">Solde</span></dt>
+          <dd>
+            <span>{{ compteRef.solde }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.plafondTransaction">Plafond Transaction</span></dt>
+          <dd>
+            <span>{{ compteRef.plafondTransaction }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.limiteRetraitsMensuels">Limite Retraits Mensuels</span></dt>
+          <dd>
+            <span>{{ compteRef.limiteRetraitsMensuels }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.tauxInteret">Taux Interet</span></dt>
+          <dd>
+            <span>{{ compteRef.tauxInteret }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.dateOuverture">Date Ouverture</span></dt>
+          <dd>
+            <span>{{ compteRef.dateOuverture | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.dateFermeture">Date Fermeture</span></dt>
+          <dd>
+            <span>{{ compteRef.dateFermeture | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.statut">Statut</span></dt>
+          <dd>
+            <span>{{ compteRef.statut }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.compte.iban">Iban</span></dt>
+          <dd>
+            <span>{{ compteRef.iban }}</span>
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/compte', compteRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

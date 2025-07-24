@@ -1,0 +1,40 @@
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+
+/* GreenBank-Themed Navbar */
+.navbar {
+  background-color: #d7ead3 !important;
+  padding: 0.5rem 1.5rem;
+
+  .navbar-brand {
+    font-weight: bold;
+    font-size: 1.4rem;
+    color: #2c6b34 !important;
+    text-decoration: none;
+
+    img {
+      border-radius: 50%;
+    }
+  }
+
+  .nav-link {
+    color: #2c6b34 !important;
+    font-weight: 600;
+
+    &.active,
+    &:hover {
+      text-decoration: underline;
+      color: #2e7d32 !important;
+    }
+  }
+
+  .navbar-toggler {
+    border: none;
+    color: #2c6b34;
+    font-size: 1.2rem;
+  }
+
+  .dropdown-menu {
+    font-size: 0.9rem;
+  }
+}

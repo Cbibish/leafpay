@@ -1,0 +1,172 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2
+        id="jhi-transaction-heading"
+        data-cy="TransactionCreateUpdateHeading"
+        jhiTranslate="leafpayApp.transaction.home.createOrEditLabel"
+      >
+        Create or edit a Transaction
+      </h2>
+
+      <div>
+        <jhi-alert-error />
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="leafpayApp.transaction.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" for="field_montant" jhiTranslate="leafpayApp.transaction.montant">Montant</label>
+          <input type="number" class="form-control" name="montant" id="field_montant" data-cy="montant" formControlName="montant" />
+        </div>
+
+        @let typeTransactionRef = editForm.get('typeTransaction')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_typeTransaction" jhiTranslate="leafpayApp.transaction.typeTransaction"
+            >Type Transaction</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="typeTransaction"
+            id="field_typeTransaction"
+            data-cy="typeTransaction"
+            formControlName="typeTransaction"
+          />
+          @if (typeTransactionRef.invalid && (typeTransactionRef.dirty || typeTransactionRef.touched)) {
+            <div>
+              @if (editForm.get('typeTransaction')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
+                  >This field cannot be longer than 50 characters.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_dateTransaction" jhiTranslate="leafpayApp.transaction.dateTransaction"
+            >Date Transaction</label
+          >
+          <div class="d-flex">
+            <input
+              id="field_dateTransaction"
+              data-cy="dateTransaction"
+              type="datetime-local"
+              class="form-control"
+              name="dateTransaction"
+              formControlName="dateTransaction"
+              placeholder="YYYY-MM-DD HH:mm"
+            />
+          </div>
+        </div>
+
+        @let statutRef = editForm.get('statut')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_statut" jhiTranslate="leafpayApp.transaction.statut">Statut</label>
+          <input type="text" class="form-control" name="statut" id="field_statut" data-cy="statut" formControlName="statut" />
+          @if (statutRef.invalid && (statutRef.dirty || statutRef.touched)) {
+            <div>
+              @if (editForm.get('statut')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
+                  >This field cannot be longer than 50 characters.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        @let moyenValidationRef = editForm.get('moyenValidation')!;
+        <div class="mb-3">
+          <label class="form-label" for="field_moyenValidation" jhiTranslate="leafpayApp.transaction.moyenValidation"
+            >Moyen Validation</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="moyenValidation"
+            id="field_moyenValidation"
+            data-cy="moyenValidation"
+            formControlName="moyenValidation"
+          />
+          @if (moyenValidationRef.invalid && (moyenValidationRef.dirty || moyenValidationRef.touched)) {
+            <div>
+              @if (editForm.get('moyenValidation')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '255' }"
+                  >This field cannot be longer than 255 characters.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_justificatif" jhiTranslate="leafpayApp.transaction.justificatif">Justificatif</label>
+          <textarea
+            class="form-control"
+            name="justificatif"
+            id="field_justificatif"
+            data-cy="justificatif"
+            formControlName="justificatif"
+          ></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_compteSource" jhiTranslate="leafpayApp.transaction.compteSource">Compte Source</label>
+          <select
+            class="form-control"
+            id="field_compteSource"
+            data-cy="compteSource"
+            name="compteSource"
+            formControlName="compteSource"
+            [compareWith]="compareCompte"
+          >
+            <option [ngValue]="null"></option>
+            @for (compteOption of comptesSharedCollection; track $index) {
+              <option [ngValue]="compteOption">{{ compteOption.id }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_compteDestination" jhiTranslate="leafpayApp.transaction.compteDestination"
+            >Compte Destination</label
+          >
+          <select
+            class="form-control"
+            id="field_compteDestination"
+            data-cy="compteDestination"
+            name="compteDestination"
+            formControlName="compteDestination"
+            [compareWith]="compareCompte"
+          >
+            <option [ngValue]="null"></option>
+            @for (compteOption of comptesSharedCollection; track $index) {
+              <option [ngValue]="compteOption">{{ compteOption.id }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

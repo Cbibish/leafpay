@@ -1,0 +1,70 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (utilisateur(); as utilisateurRef) {
+      <div>
+        <h2 data-cy="utilisateurDetailsHeading"><span jhiTranslate="leafpayApp.utilisateur.detail.title">Utilisateur</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.nom">Nom</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.nom }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.prenom">Prenom</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.prenom }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.email">Email</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.email }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.motDePasse">Mot De Passe</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.motDePasse }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.dateNaissance">Date Naissance</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.dateNaissance | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.typeJustificatifAge">Type Justificatif Age</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.typeJustificatifAge }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.statut">Statut</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.statut }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.dateCreation">Date Creation</span></dt>
+          <dd>
+            <span>{{ utilisateurRef.dateCreation | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.utilisateur.setRole">Set Role</span></dt>
+          <dd>
+            @if (utilisateur()!.setRole) {
+              <div>
+                <a [routerLink]="['/role', utilisateur()!.setRole?.id, 'view']">{{ utilisateurRef.setRole?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/utilisateur', utilisateurRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

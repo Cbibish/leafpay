@@ -1,0 +1,58 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (log(); as logRef) {
+      <div>
+        <h2 data-cy="logDetailsHeading"><span jhiTranslate="leafpayApp.log.detail.title">Log</span></h2>
+
+        <hr />
+
+        <jhi-alert-error />
+
+        <jhi-alert />
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ logRef.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.action">Action</span></dt>
+          <dd>
+            <span>{{ logRef.action }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.timestamp">Timestamp</span></dt>
+          <dd>
+            <span>{{ logRef.timestamp | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.ipUtilisateur">Ip Utilisateur</span></dt>
+          <dd>
+            <span>{{ logRef.ipUtilisateur }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.resultat">Resultat</span></dt>
+          <dd>
+            <span>{{ logRef.resultat }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.description">Description</span></dt>
+          <dd>
+            <span>{{ logRef.description }}</span>
+          </dd>
+          <dt><span jhiTranslate="leafpayApp.log.utilisateur">Utilisateur</span></dt>
+          <dd>
+            @if (log()!.utilisateur) {
+              <div>
+                <a [routerLink]="['/utilisateur', log()!.utilisateur?.id, 'view']">{{ logRef.utilisateur?.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/log', logRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
