@@ -33,11 +33,10 @@ public class UtilisateurService {
     private final PasswordEncoder passwordEncoder;
 
     public UtilisateurService(
-        UtilisateurRepository utilisateurRepository,
-        UtilisateurMapper utilisateurMapper,
-        RoleRepository roleRepository,
-        PasswordEncoder passwordEncoder
-    ) {
+            UtilisateurRepository utilisateurRepository,
+            UtilisateurMapper utilisateurMapper,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
         this.roleRepository = roleRepository;
@@ -61,8 +60,9 @@ public class UtilisateurService {
 
         if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getNom() != null) {
             Role role = roleRepository
-                .findByNom(utilisateurDTO.getRole().getNom())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
+                    .findByNom(utilisateurDTO.getRole().getNom())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
             utilisateur.setRole(role);
         } else {
             throw new IllegalArgumentException("Role must be provided when registering a user.");
@@ -90,8 +90,9 @@ public class UtilisateurService {
 
         if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
             Role role = roleRepository
-                .findById(utilisateurDTO.getRole().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+                    .findById(utilisateurDTO.getRole().getId())
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
             utilisateur.setRole(role);
         }
 
@@ -109,21 +110,22 @@ public class UtilisateurService {
         LOG.debug("Request to partially update Utilisateur : {}", utilisateurDTO);
 
         return utilisateurRepository
-            .findById(utilisateurDTO.getId())
-            .map(existingUtilisateur -> {
-                utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+                .findById(utilisateurDTO.getId())
+                .map(existingUtilisateur -> {
+                    utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
 
-                if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
-                    Role role = roleRepository
-                        .findById(utilisateurDTO.getRole().getId())
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
-                    existingUtilisateur.setRole(role);
-                }
+                    if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
+                        Role role = roleRepository
+                                .findById(utilisateurDTO.getRole().getId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                        "Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+                        existingUtilisateur.setRole(role);
+                    }
 
-                return existingUtilisateur;
-            })
-            .map(utilisateurRepository::save)
-            .map(utilisateurMapper::toDto);
+                    return existingUtilisateur;
+                })
+                .map(utilisateurRepository::save)
+                .map(utilisateurMapper::toDto);
     }
 
     /**
@@ -159,4 +161,10 @@ public class UtilisateurService {
         LOG.debug("Request to delete Utilisateur : {}", id);
         utilisateurRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public Optional<Utilisateur> findByEmail(String email) {
+        return utilisateurRepository.findByEmail(email);
+    }
+
 }

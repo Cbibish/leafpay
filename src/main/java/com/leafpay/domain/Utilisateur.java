@@ -61,7 +61,7 @@ public class Utilisateur implements Serializable {
     @Column(name = "date_creation")
     private Instant dateCreation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_role_id") // add this for clarity, specifying the FK column name
     private Role role;
 
