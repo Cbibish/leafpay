@@ -29,6 +29,14 @@ export class AccountService {
     }
   }
 
+  save(account: Account): Observable<Account> {
+    return this.http.put<Account>(this.applicationConfigService.getEndpointFor('api/account'), account).pipe(
+      tap((updatedAccount: Account) => {
+        this.authenticate(updatedAccount);
+      }),
+    );
+  }
+
   trackCurrentAccount(): Signal<Account | null> {
     return this.userIdentity.asReadonly();
   }

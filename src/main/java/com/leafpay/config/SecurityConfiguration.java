@@ -56,6 +56,8 @@ public class SecurityConfiguration {
                         .permitAll()
                         .requestMatchers(mvc.pattern("/swagger-ui/**"))
                         .permitAll()
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/utilisateurs"))
+                        .permitAll()
                         // Admin endpoints
                         .requestMatchers(mvc.pattern("/api/admin/**"))
                         .hasAuthority(AuthoritiesConstants.ADMIN)

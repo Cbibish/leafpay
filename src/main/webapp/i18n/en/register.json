@@ -1,6 +1,32 @@
 {
   "register": {
     "title": "Registration",
+    "nom": {
+      "label": "Last Name",
+      "required": "Last name is required."
+    },
+    "prenom": {
+      "label": "First Name",
+      "required": "First name is required."
+    },
+    "password": {
+      "label": "Password",
+      "required": "Password is required."
+    },
+    "confirmPassword": {
+      "label": "Confirm Password",
+      "required": "Confirmation is required."
+    },
+    "email": {
+      "invalid": "Invalid email address"
+    },
+    "role": {
+      "label": "Account Type",
+      "options": {
+        "NORMAL_USER": "Personal Account",
+        "PROFESSIONAL_USER": "Professional Account"
+      }
+    },
     "form": {
       "button": "Register"
     },

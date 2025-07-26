@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { Authority } from 'app/config/authority.constants';
-
+import accountRoutes from './account/account.route';
 import { UserRouteAccessService } from 'app/core/auth/user-route-access.service';
 import { errorRoute } from './layouts/error/error.route';
 
@@ -37,6 +37,10 @@ const routes: Routes = [
     path: 'client-dashboard',
     loadComponent: () => import(`./client-dashboard/client-dashboard.component`).then(m => m.ClientDashboardComponent),
     title: 'client-dashboard.title',
+  },
+  {
+    path: 'account',
+    children: accountRoutes,
   },
   ...errorRoute,
 ];
