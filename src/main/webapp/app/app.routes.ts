@@ -39,6 +39,11 @@ const routes: Routes = [
     title: 'client-dashboard.title',
   },
   {
+    path: 'profile',
+    loadComponent: () => import(`./profile/profile.component`).then(m => m.ProfileComponent),
+    title: 'profile.title',
+  },
+  {
     path: 'account',
     children: accountRoutes,
   },
