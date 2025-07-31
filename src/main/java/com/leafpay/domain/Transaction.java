@@ -28,8 +28,9 @@ public class Transaction implements Serializable {
     private BigDecimal montant;
 
     @Size(max = 50)
-    @Column(name = "type_transaction", length = 50)
-    private String typeTransaction;
+@Column(name = "type_transaction", length = 50)
+private String typeTransaction;
+
 
     @Column(name = "date_transaction")
     private Instant dateTransaction;
@@ -53,6 +54,22 @@ public class Transaction implements Serializable {
     private Compte compteDestination;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    @Column(name = "libelle", length = 255)
+    private String libelle;
+    
+    public String getLibelle() {
+        return this.libelle;
+    }
+    
+    public void setLibelle(String libelle) {
+        this.libelle = libelle;
+    }
+    
+    public Transaction libelle(String libelle) {
+        this.setLibelle(libelle);
+        return this;
+    }
 
     public Long getId() {
         return this.id;
@@ -80,17 +97,17 @@ public class Transaction implements Serializable {
         this.montant = montant;
     }
 
-    public String getTypeTransaction() {
+    public String  getTypeTransaction() {
         return this.typeTransaction;
     }
 
-    public Transaction typeTransaction(String typeTransaction) {
+    public Transaction typeTransaction(String  typeTransaction) {
         this.setTypeTransaction(typeTransaction);
         return this;
     }
 
-    public void setTypeTransaction(String typeTransaction) {
-        this.typeTransaction = typeTransaction;
+    public void setTypeTransaction(String  type) {
+        this.typeTransaction = type;
     }
 
     public Instant getDateTransaction() {

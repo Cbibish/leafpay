@@ -36,78 +36,102 @@
       </button>
     </div>
 
-    <h3 class="text-success fw-bold mb-4">Mes comptes</h3>
-
-    <!-- Tab Content -->
+    <!-- ✅ Account Tab -->
     <div *ngIf="activeTab === 'account'">
-      <!-- Mon Compte -->
-      <div class="card p-4 mb-3">
-        <h5 class="fw-bold">Details de compte Standart</h5>
-        <p><strong>Solde total :</strong> 11 124,00 €</p>
-        <p><strong>Historique de transactions</strong></p>
-        <ul>
-          <li>Retrait carte XXXX XXXX XXXX : -50 €</li>
-          <li>Salaire mensuel : 5000 €</li>
-          <li>Virement SEPA : -2500 €</li>
-        </ul>
+      <h3 class="text-success fw-bold mb-4">Mes comptes</h3>
+
+      <div *ngIf="comptes.length > 1" class="mb-3">
+        <label for="accountSelect" class="form-label">Choisir un compte</label>
+        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+          <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
+        </select>
       </div>
 
-      <div class="card p-4">
-        <h5 class="fw-bold">Details de compte Épargne</h5>
-        <p><strong>Solde total :</strong> 23 923,00 €</p>
-        <p><strong>Historique de transactions</strong></p>
-        <ul>
-          <li>Virement depuis compte Standart 1531546521 : 200€</li>
-          <li>Virement depuis compte Standart 1531546521 : 200€</li>
-          <li>Virement depuis compte Standart 1531546521 : 200€</li>
-        </ul>
+      <div *ngIf="loading">Chargement des données...</div>
+
+      <!-- Show selected compte details only -->
+      <div *ngIf="!loading && selectedCompteId != null">
+        <div *ngFor="let compte of comptes" [hidden]="compte.compteId !== selectedCompteId" class="card p-4 mb-3">
+          <h5 class="fw-bold">{{ compte.typeCompte }} ({{ compte.roleUtilisateurSurCeCompte }})</h5>
+          <p><strong>Solde total :</strong> {{ compte.solde | number: '1.2-2' }} €</p>
+          <p><strong>IBAN :</strong> {{ compte.iban }}</p>
+        </div>
       </div>
+
+      <div *ngIf="!loading && comptes.length === 0" class="alert alert-info">Aucun compte trouvé.</div>
+
+      <!-- Transactions for the selected account -->
+      <div *ngIf="transactions.length > 0" class="mt-4">
+        <h5 class="text-success fw-bold mb-3">Transactions du compte sélectionné</h5>
+        <div *ngFor="let t of transactions" class="border p-3 mb-3 rounded">
+          <p><strong></strong> {{ t.typeTransaction }} — <strong>Montant :</strong> {{ t.montant | number: '1.2-2' }} €</p>
+          <!-- You can customize transaction display here -->
+        </div>
+      </div>
+
+      <div *ngIf="transactions.length === 0 && !loading" class="alert alert-warning">Aucune transaction trouvée pour ce compte.</div>
     </div>
 
+    <!-- Money Tab -->
     <div *ngIf="activeTab === 'money'">
-      <!-- Gérer mon argent -->
+      <div *ngIf="comptes.length > 1" class="mb-3">
+        <label for="accountSelect" class="form-label">Choisir un compte</label>
+        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+          <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
+        </select>
+      </div>
+
       <div class="card p-4">
         <h5 class="text-success fw-bold mb-3">Dépôt / Retrait</h5>
 
         <div class="mb-3">
           <label class="form-label">Montant (€)</label>
-          <input type="number" class="form-control" placeholder="Ex : 100" />
+          <input type="number" class="form-control" placeholder="Ex : 100" [(ngModel)]="amount" min="0.01" />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Type d'opération</label>
-          <select class="form-select">
-            <option value="retrait">Retrait</option>
+          <select class="form-select" [(ngModel)]="operationType">
             <option value="depot">Dépôt</option>
+            <option value="retrait">Retrait</option>
           </select>
         </div>
 
-        <button class="btn btn-success">Valider</button>
+        <button class="btn btn-success" (click)="submitMoneyOperation()" [disabled]="!isMoneyFormValid()">Valider</button>
+
+        <!-- Success or Error Message -->
+        <div
+          *ngIf="moneyOperationMessage"
+          class="mt-3 alert"
+          [ngClass]="{ 'alert-success': moneyOperationSuccess, 'alert-danger': !moneyOperationSuccess }"
+        >
+          {{ moneyOperationMessage }}
+        </div>
       </div>
     </div>
 
+    <!-- ✅ Transfer Tab -->
     <div *ngIf="activeTab === 'transfer'">
-      <!-- Virement externe -->
+      <h3 class="text-success fw-bold mb-4">Mes Derniers virements</h3>
+      <div *ngIf="comptes.length > 1" class="mb-3">
+        <label for="accountSelect" class="form-label">Choisir un compte</label>
+        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+          <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
+        </select>
+      </div>
       <div class="card p-4">
         <h5 class="fw-bold mb-3">Derniers virements</h5>
-        <div class="border p-3 mb-3 rounded">
-          <p>
-            <strong>Depuis Compte Standart 1531546521</strong>
-            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
-            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
-          </p>
+
+        <div *ngIf="transferTransactions.length === 0">
+          <p>Aucun virement trouvé.</p>
         </div>
-        <div class="border p-3 mb-3 rounded">
+
+        <div *ngFor="let t of transferTransactions" class="border p-3 mb-3 rounded">
           <p>
-            <strong>Depuis Compte Standart 1531546521</strong>
-            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
-            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
-          </p>
-        </div>
-        <div class="border p-3 rounded">
-          <p>
-            <strong>Depuis Compte Standart 1531546521</strong>
-            &rarr; vers compte Étudiant 1531546555 — Montant : 500 €
+            <strong>Depuis compte ID {{ t.compteSource.id }}</strong>
+            &rarr; vers compte ID {{ t.compteDestination?.id }}
+            <span *ngIf="t.compteDestination?.iban"> (IBAN: {{ t.compteDestination?.iban }}) </span>
+            — Montant : {{ t.montant | number: '1.2-2' }} €
             <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
           </p>
         </div>
