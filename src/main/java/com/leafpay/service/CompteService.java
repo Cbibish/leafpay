@@ -1,9 +1,13 @@
 package com.leafpay.service;
 
 import com.leafpay.domain.Compte;
+import com.leafpay.domain.TypeTransaction;
 import com.leafpay.repository.CompteRepository;
 import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.mapper.CompteMapper;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.leafpay.service.TransactionService;
 
 /**
  * Service Implementation for managing {@link com.leafpay.domain.Compte}.
@@ -25,10 +30,14 @@ public class CompteService {
 
     private final CompteMapper compteMapper;
 
-    public CompteService(CompteRepository compteRepository, CompteMapper compteMapper) {
-        this.compteRepository = compteRepository;
-        this.compteMapper = compteMapper;
-    }
+    private final TransactionService transactionService;
+
+    public CompteService(CompteRepository compteRepository, CompteMapper compteMapper, TransactionService transactionService) {
+    this.compteRepository = compteRepository;
+    this.compteMapper = compteMapper;
+    this.transactionService = transactionService;
+}
+
 
     /**
      * Save a compte.
@@ -109,4 +118,29 @@ public class CompteService {
         LOG.debug("Request to delete Compte : {}", id);
         compteRepository.deleteById(id);
     }
+
+    public Optional<CompteDTO> deposit(Long compteId, BigDecimal amount) {
+    return compteRepository.findById(compteId).map(compte -> {
+        compte.setSolde(compte.getSolde().add(amount));
+        compteRepository.save(compte);
+
+        // Log transaction
+        transactionService.logTransaction(compte, null, amount, "DEPOT", "User deposit");
+
+        return compteMapper.toDto(compte);
+    });
+}
+
+public Optional<CompteDTO> withdraw(Long compteId, BigDecimal amount) {
+    return compteRepository.findById(compteId).filter(c -> c.getSolde().compareTo(amount) >= 0).map(compte -> {
+        compte.setSolde(compte.getSolde().subtract(amount));
+        compteRepository.save(compte);
+
+        // Log transaction
+        transactionService.logTransaction(compte, null, amount, "RETRAIT", "User withdrawal");
+
+        return compteMapper.toDto(compte);
+    });
+}
+
 }

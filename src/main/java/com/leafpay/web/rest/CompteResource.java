@@ -6,6 +6,8 @@ import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -176,4 +178,39 @@ public class CompteResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }
+
+    @PostMapping("/{id}/deposit")
+public ResponseEntity<CompteDTO> deposit(
+    @PathVariable Long id,
+    @RequestBody BigDecimal amount
+) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new BadRequestAlertException("Invalid deposit amount", ENTITY_NAME, "invalidamount");
+    }
+
+    Optional<CompteDTO> updatedCompteOpt = compteService.deposit(id, amount);
+    if (updatedCompteOpt.isEmpty()) {
+        throw new BadRequestAlertException("Compte not found", ENTITY_NAME, "notfound");
+    }
+
+    return ResponseEntity.ok(updatedCompteOpt.get());
+}
+
+@PostMapping("/{id}/withdraw")
+public ResponseEntity<CompteDTO> withdraw(
+    @PathVariable Long id,
+    @RequestBody BigDecimal amount
+) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new BadRequestAlertException("Invalid withdraw amount", ENTITY_NAME, "invalidamount");
+    }
+
+    Optional<CompteDTO> updatedCompteOpt = compteService.withdraw(id, amount);
+    if (updatedCompteOpt.isEmpty()) {
+        throw new BadRequestAlertException("Compte not found or insufficient balance", ENTITY_NAME, "operationfailed");
+    }
+
+    return ResponseEntity.ok(updatedCompteOpt.get());
+}
+
 }

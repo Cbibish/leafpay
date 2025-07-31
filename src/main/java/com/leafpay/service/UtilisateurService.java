@@ -80,25 +80,32 @@ public class UtilisateurService {
      */
 
     public UtilisateurDTO update(UtilisateurDTO utilisateurDTO) {
-        LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
-        Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
+    LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
+    Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
 
-        // Encode password if present
-        if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
-            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+    // Encode password if present
+    if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
+        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+    }
+
+    if (utilisateurDTO.getRole() != null) {
+        Role role = null;
+        if (utilisateurDTO.getRole().getId() != null) {
+            role = roleRepository.findById(utilisateurDTO.getRole().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+        } else if (utilisateurDTO.getRole().getNom() != null) {
+            role = roleRepository.findByNom(utilisateurDTO.getRole().getNom())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
         }
 
-        if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
-            Role role = roleRepository
-                    .findById(utilisateurDTO.getRole().getId())
-                    .orElseThrow(
-                            () -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+        if (role != null) {
             utilisateur.setRole(role);
         }
-
-        utilisateur = utilisateurRepository.save(utilisateur);
-        return utilisateurMapper.toDto(utilisateur);
     }
+
+    utilisateur = utilisateurRepository.save(utilisateur);
+    return utilisateurMapper.toDto(utilisateur);
+}
 
     /**
      * Partially update a utilisateur.
@@ -167,4 +174,9 @@ public class UtilisateurService {
         return utilisateurRepository.findByEmail(email);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<UtilisateurDTO> findOneByEmail(String email) {
+        return utilisateurRepository.findByEmail(email)
+                .map(utilisateurMapper::toDto);
+    }
 }

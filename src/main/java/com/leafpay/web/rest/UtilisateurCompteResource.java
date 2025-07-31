@@ -1,8 +1,11 @@
 package com.leafpay.web.rest;
 
+import com.leafpay.domain.UtilisateurCompte;
 import com.leafpay.repository.UtilisateurCompteRepository;
 import com.leafpay.service.UtilisateurCompteService;
+import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.dto.UtilisateurCompteDTO;
+import com.leafpay.service.dto.UtilisateurCompteDetailDTO;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -19,8 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
@@ -182,6 +183,27 @@ public class UtilisateurCompteResource {
         Optional<UtilisateurCompteDTO> utilisateurCompteDTO = utilisateurCompteService.findOne(id);
         return ResponseUtil.wrapOrNotFound(utilisateurCompteDTO);
     }
+
+
+    @GetMapping("/utilisateur/{id}/details")
+public List<UtilisateurCompteDetailDTO> getComptesDetailByUtilisateur(@PathVariable Long id) {
+    List<UtilisateurCompte> utilisateurComptes = utilisateurCompteRepository.findByUtilisateurIdWithCompte(id);
+
+    return utilisateurComptes.stream()
+        .map(uc -> new UtilisateurCompteDetailDTO(
+                uc.getUtilisateur().getId(),
+                uc.getUtilisateur().getNom(),
+                uc.getUtilisateur().getPrenom(),
+                uc.getUtilisateur().getEmail(),
+                uc.getCompte().getId(),
+                uc.getCompte().getTypeCompte(),
+                uc.getCompte().getSolde(),
+                uc.getCompte().getIban(),
+                uc.getRoleUtilisateurSurCeCompte()
+        ))
+        .toList();
+}
+
 
     /**
      * {@code GET  /utilisateur-comptes/:id} : get the "id" utilisateurCompte. Will
