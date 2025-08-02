@@ -1,4 +1,5 @@
 package com.leafpay.repository;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import com.leafpay.domain.Transaction;
@@ -22,6 +23,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByCompteSource_Id(Long compteId);
 
     int countByCompteSourceIdAndTypeTransactionAndDateTransactionAfter(Long compteId, String typeTransaction, Instant afterDate);
+
+ @Query("SELECT t FROM Transaction t WHERE t.montant > 10000 and t.statut = 'PENDING'")
+    List<Transaction> findImportantTransactions();
+
+List<Transaction> findByMontantGreaterThanAndStatut(BigDecimal montant, String status);
 
 
     // If you want only incoming (destination)

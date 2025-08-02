@@ -8,7 +8,7 @@ public class TransferRequestDTO {
 
     private Long fromAccountId;
     private Long toAccountId;
-    private BigDecimal amount;
+    private BigDecimal montant;
 
     @Column(name = "justificatif", nullable = true)
     private String justificatif;
@@ -19,10 +19,10 @@ public class TransferRequestDTO {
     public TransferRequestDTO() {
     }
 
-    public TransferRequestDTO(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+    public TransferRequestDTO(Long fromAccountId, Long toAccountId, BigDecimal montant) {
         this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
-        this.amount = amount;
+        this.montant = montant;
     }
 
     public Long getFromAccountId() {
@@ -42,11 +42,11 @@ public class TransferRequestDTO {
     }
 
     public BigDecimal getAmount() {
-        return amount;
+        return montant;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setAmount(BigDecimal montant) {
+        this.montant = montant;
     }
 
     public String getJustificatif() {
@@ -70,7 +70,7 @@ public class TransferRequestDTO {
         return "TransferRequestDTO{" +
                 "fromAccountId=" + fromAccountId +
                 ", toAccountId=" + toAccountId +
-                ", amount=" + amount +
+                ", montant=" + montant +
                 '}';
     }
 }

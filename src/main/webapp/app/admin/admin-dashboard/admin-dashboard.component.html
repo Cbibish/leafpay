@@ -26,14 +26,13 @@
     </button>
   </div>
 
-  <!-- Users CRUD -->
+  <!-- Users -->
   <div *ngIf="activeTab === 'users'">
     <div class="card p-4">
-      <h4 class="text-success mb-3">Gestion des utilisateurs</h4>
+      <h4 class="text-success mb-3">Utilisateurs</h4>
       <table class="table table-bordered table-striped">
         <thead class="table-light">
           <tr>
-            <th>Nom</th>
             <th>Email</th>
             <th>Rôle</th>
             <th>Actions</th>
@@ -41,9 +40,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let user of users">
-            <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
+            <td>{{ user.role?.nom || '—' }}</td>
             <td>
               <button class="btn btn-sm btn-primary me-2" (click)="editUser(user)">Modifier</button>
               <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Supprimer</button>
@@ -51,7 +49,24 @@
           </tr>
         </tbody>
       </table>
-      <button class="btn btn-success mt-3" (click)="createUser()">➕ Ajouter un utilisateur</button>
+    </div>
+
+    <!-- Modal -->
+    <div *ngIf="editingUser" class="modal-backdrop">
+      <div class="modal-container">
+        <h5>Modifier le rôle de l'utilisateur</h5>
+        <p><strong>Email:</strong> {{ editingUser.email }}</p>
+
+        <label for="role">Nouveau rôle</label>
+        <select id="role" [(ngModel)]="selectedRoleId" class="form-control mb-3">
+          <option *ngFor="let role of availableRoles" [value]="role.id">{{ role.nom }}</option>
+        </select>
+
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-secondary me-2" (click)="closeModal()">Annuler</button>
+          <button class="btn btn-success" (click)="updateUserRole()">Enregistrer</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -59,9 +74,12 @@
   <div *ngIf="activeTab === 'transactions'">
     <div class="card p-4">
       <h4 class="text-success mb-3">Transactions importantes à valider</h4>
+      <div *ngIf="transactions.length === 0" class="text-muted">Aucune transaction à valider.</div>
       <div *ngFor="let tx of transactions" class="border p-3 mb-2 rounded">
         <p>
-          <strong>Montant :</strong> {{ tx.amount }} € | <strong>De :</strong> {{ tx.from }} | <strong>À :</strong> {{ tx.to }}
+          <strong>Montant :</strong> {{ tx.montant }} € | <strong>De :</strong> {{ tx.compteSource?.iban || '—' }} | <strong>À :</strong>
+          {{ tx.compteDestination?.iban || '—' }}
+
           <button class="btn btn-sm btn-outline-success float-end me-2" (click)="approveTransaction(tx.id)">Valider</button>
           <button class="btn btn-sm btn-outline-danger float-end" (click)="rejectTransaction(tx.id)">Rejeter</button>
         </p>
@@ -73,9 +91,37 @@
   <div *ngIf="activeTab === 'logs'">
     <div class="card p-4">
       <h4 class="text-success mb-3">Logs récents</h4>
-      <ul class="list-group">
-        <li class="list-group-item" *ngFor="let log of logs">{{ log }}</li>
-      </ul>
+
+      <!-- Filter dropdown -->
+      <div class="mb-3">
+        <label for="filterType" class="form-label">Filtrer par type:</label>
+        <select id="filterType" class="form-select w-auto" (change)="onFilterChange($event)">
+          <option value="">Tous</option>
+          <option value="LOGIN">LOGIN</option>
+          <option value="SECURITY_ALERT">SECURITY_ALERT</option>
+        </select>
+      </div>
+
+      <table class="table table-bordered table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>Horodatage</th>
+            <th>Type</th>
+            <th>IP Source</th>
+            <th>Statut</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of filteredLogs">
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.ipUtilisateur }}</td>
+            <td>{{ log.resultat }}</td>
+            <td>{{ log.description }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

@@ -11,12 +11,22 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface TransactionMapper extends EntityMapper<TransactionDTO, Transaction> {
-    @Mapping(target = "compteSource", source = "compteSource", qualifiedByName = "compteId")
-    @Mapping(target = "compteDestination", source = "compteDestination", qualifiedByName = "compteId")
+
+    // Use the mapping that includes iban here:
+    @Mapping(target = "compteSource", source = "compteSource", qualifiedByName = "compteWithIban")
+    @Mapping(target = "compteDestination", source = "compteDestination", qualifiedByName = "compteWithIban")
     TransactionDTO toDto(Transaction s);
 
+    // Original minimal mapping (only id) – still useful elsewhere if needed
     @Named("compteId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     CompteDTO toDtoCompteId(Compte compte);
+
+    // NEW mapping that includes iban
+    @Named("compteWithIban")
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "iban", source = "iban")
+    CompteDTO toDtoCompteWithIban(Compte compte);
 }

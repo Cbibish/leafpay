@@ -235,7 +235,26 @@ public ResponseEntity<?> deposit(@RequestBody DepositRequestDTO depositRequest) 
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
+ @GetMapping("/important")
+    public ResponseEntity<List<TransactionDTO>> getImportantTransactions() {
+        List<TransactionDTO> list = transactionService.findImportantTransactions();
+        return ResponseEntity.ok(list);
+    }
 
+    @PutMapping("/{id}/validate")
+    public ResponseEntity<TransactionDTO> validateTransaction(@PathVariable Long id) {
+        TransactionDTO dto = transactionService.validateTransaction(id);
+        return ResponseEntity.ok(dto);
+    }
+
+     @PutMapping("/{id}/reject")
+public ResponseEntity<TransactionDTO> rejectTransaction(
+        @PathVariable Long id,
+        @RequestParam(required = false, defaultValue = "Rejected by admin") String reason) {
+
+    TransactionDTO dto = transactionService.rejectTransaction(id, reason);
+    return ResponseEntity.ok(dto);
+}
 
 
 }
