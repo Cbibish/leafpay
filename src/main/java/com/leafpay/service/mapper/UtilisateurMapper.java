@@ -4,6 +4,9 @@ import com.leafpay.domain.Role;
 import com.leafpay.domain.Utilisateur;
 import com.leafpay.service.dto.RoleDTO;
 import com.leafpay.service.dto.UtilisateurDTO;
+
+import java.util.Set;
+
 import org.mapstruct.*;
 
 /**
@@ -22,4 +25,12 @@ public interface UtilisateurMapper extends EntityMapper<UtilisateurDTO, Utilisat
     @Mapping(target = "id", source = "id")
     @Mapping(target = "nom", source = "nom")
     RoleDTO toDtoRoleId(Role role);
+
+    @AfterMapping
+    default void setAuthorities(Utilisateur utilisateur, @MappingTarget UtilisateurDTO dto) {
+        if (utilisateur.getRole() != null && utilisateur.getRole().getNom() != null) {
+            dto.setAuthorities(Set.of("ROLE_" + utilisateur.getRole().getNom().toUpperCase()));
+        }
+    }
 }
+

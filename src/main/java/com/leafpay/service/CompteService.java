@@ -5,12 +5,19 @@ import com.leafpay.domain.TypeTransaction;
 import com.leafpay.repository.CompteRepository;
 import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.mapper.CompteMapper;
+import com.leafpay.web.rest.errors.BadRequestAlertException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -119,28 +126,46 @@ public class CompteService {
         compteRepository.deleteById(id);
     }
 
-    public Optional<CompteDTO> deposit(Long compteId, BigDecimal amount) {
+    public Optional<CompteDTO> deposit(Long compteId, BigDecimal montant) {
     return compteRepository.findById(compteId).map(compte -> {
-        compte.setSolde(compte.getSolde().add(amount));
+        compte.setSolde(compte.getSolde().add(montant));
         compteRepository.save(compte);
 
         // Log transaction
-        transactionService.logTransaction(compte, null, amount, "DEPOT", "User deposit");
+        transactionService.logTransaction(compte, null, montant, "DEPOT", "User deposit");
 
         return compteMapper.toDto(compte);
     });
 }
 
-public Optional<CompteDTO> withdraw(Long compteId, BigDecimal amount) {
-    return compteRepository.findById(compteId).filter(c -> c.getSolde().compareTo(amount) >= 0).map(compte -> {
-        compte.setSolde(compte.getSolde().subtract(amount));
+public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
+    return compteRepository.findById(compteId).filter(c -> c.getSolde().compareTo(montant) >= 0).map(compte -> {
+        compte.setSolde(compte.getSolde().subtract(montant));
         compteRepository.save(compte);
 
         // Log transaction
-        transactionService.logTransaction(compte, null, amount, "RETRAIT", "User withdrawal");
+        transactionService.logTransaction(compte, null, montant, "RETRAIT", "User withdrawal");
 
         return compteMapper.toDto(compte);
     });
+}
+
+
+    public List<CompteDTO> getActiveAccounts() {
+        List<Compte> comptes = compteRepository.findByDateFermetureIsNull();
+        return comptes.stream()
+            .map(compteMapper::toDto)
+            .collect(Collectors.toList());
+    }
+
+    public CompteDTO deactivateAccount(Long compteId, LocalDateTime fermetureDate) {
+    Compte compte = compteRepository.findById(compteId)
+        .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
+
+    Instant fermetureInstant = fermetureDate.atZone(ZoneId.systemDefault()).toInstant();
+    compte.setDateFermeture(fermetureInstant);
+    Compte saved = compteRepository.save(compte);
+    return compteMapper.toDto(saved);
 }
 
 }

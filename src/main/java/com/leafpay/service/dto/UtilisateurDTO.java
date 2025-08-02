@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link com.leafpay.domain.Utilisateur} entity.
@@ -41,6 +42,16 @@ public class UtilisateurDTO implements Serializable {
     private Instant dateCreation;
 
     private RoleDTO role;
+
+    private Set<String> authorities;
+
+public Set<String> getAuthorities() {
+    return authorities;
+}
+
+public void setAuthorities(Set<String> authorities) {
+    this.authorities = authorities;
+}
 
     public Long getId() {
         return id;

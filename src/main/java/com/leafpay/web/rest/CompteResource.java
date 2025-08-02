@@ -10,7 +10,9 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -180,37 +182,47 @@ public class CompteResource {
     }
 
     @PostMapping("/{id}/deposit")
-public ResponseEntity<CompteDTO> deposit(
-    @PathVariable Long id,
-    @RequestBody BigDecimal amount
-) {
-    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new BadRequestAlertException("Invalid deposit amount", ENTITY_NAME, "invalidamount");
+    public ResponseEntity<CompteDTO> deposit(
+        @PathVariable Long id,
+        @RequestBody BigDecimal montant
+    ) {
+        if (montant == null || montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Invalid deposit montant", ENTITY_NAME, "invalidmontant");
+        }
+
+        // Fixed here: use orElseThrow instead of checking isEmpty + get
+        CompteDTO updatedCompte = compteService.deposit(id, montant)
+            .orElseThrow(() -> new BadRequestAlertException("Compte not found", ENTITY_NAME, "notfound"));
+
+        return ResponseEntity.ok(updatedCompte);
     }
 
-    Optional<CompteDTO> updatedCompteOpt = compteService.deposit(id, amount);
-    if (updatedCompteOpt.isEmpty()) {
-        throw new BadRequestAlertException("Compte not found", ENTITY_NAME, "notfound");
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<CompteDTO> withdraw(
+        @PathVariable Long id,
+        @RequestBody BigDecimal montant
+    ) {
+        if (montant == null || montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Invalid withdraw montant", ENTITY_NAME, "invalidmontant");
+        }
+
+        // Fixed here: use orElseThrow instead of checking isEmpty + get
+        CompteDTO updatedCompte = compteService.withdraw(id, montant)
+            .orElseThrow(() -> new BadRequestAlertException("Compte not found or insufficient balance", ENTITY_NAME, "operationfailed"));
+
+        return ResponseEntity.ok(updatedCompte);
     }
 
-    return ResponseEntity.ok(updatedCompteOpt.get());
-}
-
-@PostMapping("/{id}/withdraw")
-public ResponseEntity<CompteDTO> withdraw(
-    @PathVariable Long id,
-    @RequestBody BigDecimal amount
-) {
-    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new BadRequestAlertException("Invalid withdraw amount", ENTITY_NAME, "invalidamount");
+    @GetMapping("/active")
+    public ResponseEntity<List<CompteDTO>> getActiveAccounts() {
+        return ResponseEntity.ok(compteService.getActiveAccounts());
     }
 
-    Optional<CompteDTO> updatedCompteOpt = compteService.withdraw(id, amount);
-    if (updatedCompteOpt.isEmpty()) {
-        throw new BadRequestAlertException("Compte not found or insufficient balance", ENTITY_NAME, "operationfailed");
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<CompteDTO> deactivateAccount(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        String dateStr = payload.get("dateFermeture");
+        LocalDateTime fermetureDate = dateStr != null ? LocalDateTime.parse(dateStr) : null;
+        CompteDTO updated = compteService.deactivateAccount(id, fermetureDate);
+        return ResponseEntity.ok(updated);
     }
-
-    return ResponseEntity.ok(updatedCompteOpt.get());
-}
-
 }

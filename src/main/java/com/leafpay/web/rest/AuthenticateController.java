@@ -59,10 +59,10 @@ public class AuthenticateController {
     private final ConcurrentHashMap<String, AtomicInteger> failedAttempts = new ConcurrentHashMap<>();
 
     public AuthenticateController(
-        JwtEncoder jwtEncoder,
-        AuthenticationManagerBuilder authenticationManagerBuilder,
-        LogService logService,
-        AlerteSecuriteService alerteSecuriteService // Inject
+            JwtEncoder jwtEncoder,
+            AuthenticationManagerBuilder authenticationManagerBuilder,
+            LogService logService,
+            AlerteSecuriteService alerteSecuriteService // Inject
     ) {
         this.jwtEncoder = jwtEncoder;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
@@ -73,8 +73,8 @@ public class AuthenticateController {
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
         String username = loginVM.getUsername();
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(username, loginVM.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
+                loginVM.getPassword());
 
         Authentication authentication = null;
         String resultat = "FAILURE";
@@ -162,6 +162,7 @@ public class AuthenticateController {
         String roleName = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(r -> !r.isEmpty())
+                .map(r -> r.startsWith("ROLE_") ? r.substring(5) : r) // Remove "ROLE_" prefix if present
                 .findFirst()
                 .orElse("NORMAL_USER");
 
@@ -182,7 +183,6 @@ public class AuthenticateController {
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, builder.build())).getTokenValue();
     }
-
 
     /**
      * Object to return as body in JWT Authentication.

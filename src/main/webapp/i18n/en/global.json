@@ -14,7 +14,8 @@
         "utilisateurCompte": "Utilisateur Compte",
         "transaction": "Transaction",
         "log": "Log",
-        "alerteSecurite": "Alerte Securite"
+        "alerteSecurite": "Alerte Securite",
+        "admin-dashboard": "Admin Dashboard"
       },
       "account": {
         "main": "Account",
