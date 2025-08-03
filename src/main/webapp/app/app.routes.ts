@@ -19,7 +19,7 @@ const routes: Routes = [
   {
     path: 'admin',
     data: {
-      authorities: [Authority.ADMIN],
+      authorities: [Authority.ADMIN, Authority.CONSEILLER],
     },
     canActivate: [UserRouteAccessService],
     loadChildren: () => import('./admin/admin.routes'),

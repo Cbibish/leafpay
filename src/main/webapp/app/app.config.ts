@@ -28,6 +28,13 @@ const routerFeatures: RouterFeatures[] = [
   withComponentInputBinding(),
   withNavigationErrorHandler((e: NavigationError) => {
     const router = inject(Router);
+    console.log('NavigationError URL:', e.url);
+    console.log('NavigationError status:', e.error?.status);
+
+    if (e.error.status === 401 && e.url?.includes('/api/account')) {
+      return;
+    }
+
     if (e.error.status === 403) {
       router.navigate(['/accessdenied']);
     } else if (e.error.status === 404) {

@@ -15,7 +15,7 @@ interface Transaction {
 }
 
 interface CompteDTO {
-  compteId: number; // Note: compteId, not id
+  compteId: number;
   iban: string;
   typeCompte: string;
   solde: number;
@@ -36,15 +36,18 @@ export class ClientDashboardComponent implements OnInit {
   loading = true;
   transactions: Transaction[] = [];
   selectedCompteId?: number;
+  isProfessional = false;
+  currentUserId!: number;
 
   amount: number | null = null;
   operationType: 'depot' | 'retrait' = 'depot';
   moneyOperationMessage = '';
   moneyOperationSuccess = false;
-  ibanCheckMessage: string = '';
 
   showTransferForm = false;
   ibanValid = false;
+  ibanCheckMessage: string = '';
+  showLinkModal = false;
 
   transferForm = {
     fromAccountId: null as number | null,
@@ -59,14 +62,20 @@ export class ClientDashboardComponent implements OnInit {
   transferMessage = '';
   transferSuccess = false;
 
+  linkIban: string = '';
+  linkMessage: string = '';
+  linkSuccess: boolean = false;
+
   constructor(
     private accountService: AccountService,
     private http: HttpClient,
   ) {}
 
   ngOnInit(): void {
-    this.accountService.getAuthenticationState().subscribe(account => {
+    this.accountService.identity().subscribe(account => {
       if (account && account.id) {
+        this.isProfessional = account.authorities.includes('ROLE_PROFESSIONAL_USER');
+        this.currentUserId = account.id;
         this.loadComptes(account.id);
       } else {
         this.comptes = [];
@@ -74,6 +83,32 @@ export class ClientDashboardComponent implements OnInit {
         this.selectedCompteId = undefined;
         this.transactions = [];
       }
+    });
+  }
+
+  linkProfessionalAccount(): void {
+    if (!this.linkIban || this.linkIban.trim().length < 10) {
+      this.linkMessage = 'IBAN invalide.';
+      this.linkSuccess = false;
+      return;
+    }
+
+    const payload = {
+      iban: this.linkIban.trim(),
+      userId: this.currentUserId,
+    };
+
+    this.http.post<void>('/api/comptes/link-by-iban', payload).subscribe({
+      next: () => {
+        this.linkMessage = 'Compte lié avec succès !';
+        this.linkSuccess = true;
+        this.linkIban = '';
+        this.loadComptes(this.currentUserId);
+      },
+      error: err => {
+        this.linkMessage = err?.error?.message || 'Erreur lors du lien de compte.';
+        this.linkSuccess = false;
+      },
     });
   }
 
@@ -248,7 +283,6 @@ export class ClientDashboardComponent implements OnInit {
       return;
     }
 
-    // Get fromAccount IBAN
     const fromAccount = this.comptes.find(c => c.compteId === f.fromAccountId);
     if (!fromAccount || !fromAccount.iban) {
       this.transferMessage = "IBAN de l'expéditeur introuvable.";
@@ -302,5 +336,42 @@ export class ClientDashboardComponent implements OnInit {
 
   onFromAccountChange(value: string) {
     this.transferForm.fromAccountId = Number(value);
+  }
+
+  openLinkModal(): void {
+    this.linkMessage = '';
+    this.linkSuccess = false;
+    this.linkIban = '';
+    this.showLinkModal = true;
+  }
+
+  closeLinkModal(): void {
+    this.showLinkModal = false;
+  }
+
+  submitLinkAccount(): void {
+    if (!this.linkIban || this.linkIban.trim().length < 10) {
+      this.linkMessage = 'IBAN invalide.';
+      this.linkSuccess = false;
+      return;
+    }
+
+    const payload = {
+      iban: this.linkIban.trim(),
+      userId: this.currentUserId,
+    };
+
+    this.http.post<void>('/api/comptes/link-by-iban', payload).subscribe({
+      next: () => {
+        this.linkMessage = 'Compte lié avec succès !';
+        this.linkSuccess = true;
+        this.loadComptes(this.currentUserId);
+        this.linkIban = '';
+      },
+      error: err => {
+        this.linkMessage = err?.error?.message || 'Erreur lors du lien de compte.';
+        this.linkSuccess = false;
+      },
+    });
   }
 }

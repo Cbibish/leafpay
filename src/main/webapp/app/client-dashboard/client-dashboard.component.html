@@ -39,6 +39,47 @@
     <!-- ✅ Account Tab -->
     <div *ngIf="activeTab === 'account'">
       <h3 class="text-success fw-bold mb-4">Mes comptes</h3>
+      <button *ngIf="isProfessional" class="btn btn-primary" (click)="openLinkModal()">🔗 Lier un compte professionnel</button>
+      <!-- Link Account Modal -->
+      <div
+        *ngIf="showLinkModal"
+        class="modal d-block"
+        tabindex="-1"
+        role="dialog"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; z-index: 1050"
+      >
+        <div class="modal-dialog" style="position: relative; z-index: 1060">
+          <div class="modal-content p-3">
+            <div class="modal-header">
+              <h5 class="modal-title">🔗 Lier un compte professionnel</h5>
+              <button type="button" class="btn-close" (click)="closeLinkModal()"></button>
+            </div>
+            <div class="modal-body">
+              <form (ngSubmit)="submitLinkAccount()">
+                <div class="mb-3">
+                  <label for="ibanToLink" class="form-label">IBAN du compte à lier</label>
+                  <input
+                    id="ibanToLink"
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="linkIban"
+                    name="ibanToLink"
+                    placeholder="Entrez l'IBAN"
+                    required
+                  />
+                </div>
+
+                <button type="submit" class="btn btn-primary" [disabled]="!linkIban">Lier le compte</button>
+                <button type="button" class="btn btn-secondary ms-2" (click)="closeLinkModal()">Annuler</button>
+              </form>
+
+              <div *ngIf="linkMessage" class="mt-3 alert" [ngClass]="{ 'alert-success': linkSuccess, 'alert-danger': !linkSuccess }">
+                {{ linkMessage }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div *ngIf="comptes.length > 1" class="mb-3">
         <label for="accountSelectAccount" class="form-label">Choisir un compte</label>
