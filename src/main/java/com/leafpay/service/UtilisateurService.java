@@ -1,11 +1,20 @@
 package com.leafpay.service;
 
+import com.leafpay.domain.Compte;
 import com.leafpay.domain.Role;
 import com.leafpay.domain.Utilisateur;
+import com.leafpay.domain.UtilisateurCompte;
+import com.leafpay.repository.CompteRepository;
 import com.leafpay.repository.RoleRepository;
+import com.leafpay.repository.UtilisateurCompteRepository;
 import com.leafpay.repository.UtilisateurRepository;
+import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.dto.UtilisateurDTO;
 import com.leafpay.service.mapper.UtilisateurMapper;
+import com.leafpay.web.rest.errors.BadRequestAlertException;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +41,24 @@ public class UtilisateurService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final CompteRepository compteRepository;
+
+    private final UtilisateurCompteRepository utilisateurCompteRepository;
+
     public UtilisateurService(
             UtilisateurRepository utilisateurRepository,
             UtilisateurMapper utilisateurMapper,
             RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            CompteRepository compteRepository,
+            UtilisateurCompteRepository utilisateurCompteRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurMapper = utilisateurMapper;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.compteRepository = compteRepository;
+        this.utilisateurCompteRepository = utilisateurCompteRepository;
+
     }
 
     /**
@@ -49,28 +67,52 @@ public class UtilisateurService {
      * @param utilisateurDTO the entity to save.
      * @return the persisted entity.
      */
-    public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
-        LOG.debug("Request to save Utilisateur : {}", utilisateurDTO);
-        Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
+    @Transactional
+public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
+    // 1. Convert DTO to entity (usual JHipster mapping)
+    Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
 
-        // Encode password if it's not null or empty
-        if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
-            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
-        }
+    // 2. Encode password before saving user
+    utilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
 
-        if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getNom() != null) {
-            Role role = roleRepository
-                    .findByNom(utilisateurDTO.getRole().getNom())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
-            utilisateur.setRole(role);
-        } else {
-            throw new IllegalArgumentException("Role must be provided when registering a user.");
-        }
-
-        utilisateur = utilisateurRepository.save(utilisateur);
-        return utilisateurMapper.toDto(utilisateur);
+    // 3. Set creation date if new
+    if (utilisateur.getDateCreation() == null) {
+        utilisateur.setDateCreation(Instant.now());
     }
+
+    // 4. Save the user entity
+    utilisateur = utilisateurRepository.save(utilisateur);
+
+    // 5. Process comptes from DTO and create Compte + UtilisateurCompte for each
+    if (utilisateurDTO.getComptes() != null && !utilisateurDTO.getComptes().isEmpty()) {
+        for (CompteDTO compteDTO : utilisateurDTO.getComptes()) {
+            Compte compte = new Compte();
+            compte.setTypeCompte(compteDTO.getTypeCompte());
+            compte.setSolde(compteDTO.getSolde() != null ? compteDTO.getSolde() : BigDecimal.ZERO);
+            compte.setPlafondTransaction(compteDTO.getPlafondTransaction());
+            compte.setLimiteRetraitsMensuels(compteDTO.getLimiteRetraitsMensuels());
+            compte.setTauxInteret(compteDTO.getTauxInteret());
+            compte.setDateOuverture(compteDTO.getDateOuverture() != null ? compteDTO.getDateOuverture() : Instant.now());
+            compte.setDateFermeture(compteDTO.getDateFermeture());
+            compte.setStatut(compteDTO.getStatut());
+            compte.setIban(compteDTO.getIban());
+
+            // Save Compte
+            compte = compteRepository.save(compte);
+
+            // Create linking UtilisateurCompte
+            UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
+            utilisateurCompte.setUtilisateur(utilisateur);
+            utilisateurCompte.setCompte(compte);
+            utilisateurCompte.setRoleUtilisateurSurCeCompte("Owner"); // default role on creation
+            utilisateurCompteRepository.save(utilisateurCompte);
+        }
+    }
+
+    // 6. Convert back to DTO to return
+    return utilisateurMapper.toDto(utilisateur);
+}
+
 
     /**
      * Update a utilisateur.

@@ -3,6 +3,7 @@ package com.leafpay.repository;
 import com.leafpay.domain.Compte;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CompteRepository extends JpaRepository<Compte, Long> {
     List<Compte> findByDateFermetureIsNull();
+    Optional<Compte> findByIban(String iban);
+
 }

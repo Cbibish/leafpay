@@ -158,7 +158,7 @@ public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
             .collect(Collectors.toList());
     }
 
-    public CompteDTO deactivateAccount(Long compteId, LocalDateTime fermetureDate) {
+    public CompteDTO deactivateAccount(Long compteId, Instant fermetureDate) {
     Compte compte = compteRepository.findById(compteId)
         .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
 
@@ -166,6 +166,9 @@ public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
     compte.setDateFermeture(fermetureInstant);
     Compte saved = compteRepository.save(compte);
     return compteMapper.toDto(saved);
+}
+public Optional<CompteDTO> findByIban(String iban) {
+    return compteRepository.findByIban(iban).map(compteMapper::toDto);
 }
 
 }

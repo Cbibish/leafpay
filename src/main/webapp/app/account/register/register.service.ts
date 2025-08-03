@@ -13,4 +13,8 @@ export class RegisterService {
   save(registration: Registration): Observable<{}> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/utilisateurs'), registration);
   }
+
+  getRoles(): Observable<any[]> {
+    return this.http.get<any[]>(this.applicationConfigService.getEndpointFor('api/roles'));
+  }
 }

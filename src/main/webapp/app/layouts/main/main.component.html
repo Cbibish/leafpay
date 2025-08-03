@@ -1,13 +1,18 @@
-<jhi-page-ribbon />
+<div class="d-flex flex-column min-vh-100">
+  <jhi-page-ribbon />
 
-<div>
-  <router-outlet name="navbar" />
-</div>
-
-<div class="container-fluid">
-  <div class="card jh-card">
-    <router-outlet />
+  <!-- Optional named outlet for navbar -->
+  <div>
+    <router-outlet name="navbar" />
   </div>
 
-  <jhi-footer />
+  <!-- Main content area that grows to fill space -->
+  <div class="flex-grow-1 container-fluid">
+    <div class="card jh-card">
+      <router-outlet />
+    </div>
+  </div>
+
+  <!-- Footer always sticks to bottom -->
+  <jhi-footer class="mt-3" />
 </div>

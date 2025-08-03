@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,6 +47,15 @@ public class UtilisateurDTO implements Serializable {
 
     private Set<String> authorities;
 
+private List<CompteDTO> comptes = new ArrayList<>();
+
+public List<CompteDTO> getComptes() {
+    return comptes;
+}
+
+public void setComptes(List<CompteDTO> comptes) {
+    this.comptes = comptes;
+}
 public Set<String> getAuthorities() {
     return authorities;
 }
@@ -132,6 +143,8 @@ public void setAuthorities(Set<String> authorities) {
     public void setRole(RoleDTO role) {
         this.role = role;
     }
+
+
 
     @Override
     public boolean equals(Object o) {

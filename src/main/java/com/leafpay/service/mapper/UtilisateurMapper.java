@@ -14,6 +14,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface UtilisateurMapper extends EntityMapper<UtilisateurDTO, Utilisateur> {
+
     @Mapping(source = "role", target = "role")
     UtilisateurDTO toDto(Utilisateur utilisateur);
 
@@ -33,4 +34,5 @@ public interface UtilisateurMapper extends EntityMapper<UtilisateurDTO, Utilisat
         }
     }
 }
+
 
