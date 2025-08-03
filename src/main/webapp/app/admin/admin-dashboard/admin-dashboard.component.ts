@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AccountService } from 'app/core/auth/account.service';
 
 interface Log {
   id: number;
@@ -29,7 +30,7 @@ export class AdminComponent implements OnInit {
   accounts: any[] = [];
   filteredAccounts: any[] = [];
   ibanSearch: string = '';
-
+  userAuthorities: string[] = [];
   editingUser: any = null;
   selectedRoleId: number = 0;
 
@@ -40,21 +41,41 @@ export class AdminComponent implements OnInit {
     { id: 1504, nom: 'CONSEILLER' },
   ];
 
-  constructor(private adminDashboardService: AdminDashboardService) {}
+  constructor(
+    private adminDashboardService: AdminDashboardService,
+    private accountService: AccountService,
+  ) {}
 
   ngOnInit(): void {
+    this.accountService.identity().subscribe(account => {
+      this.userAuthorities = account?.authorities ?? [];
+
+      // Set default tab based on role
+      if (this.hasRole('ROLE_ADMIN')) {
+        this.activeTab = 'users';
+      } else if (this.hasRole('ROLE_CONSEILLER')) {
+        this.activeTab = 'transactions';
+      }
+    });
+
     this.loadUsers();
     this.loadTransactions();
     this.loadLogs();
-
     this.loadAccounts();
     this.filteredAccounts = [...this.accounts];
   }
 
-  setTab(tab: string): void {
-    this.activeTab = tab;
+  hasRole(role: string): boolean {
+    return this.userAuthorities.includes(role);
   }
 
+  setTab(tab: string): void {
+    // If conseiller tries to access admin-only tabs, ignore
+    if ((tab === 'users' || tab === 'logs') && !this.hasRole('ROLE_ADMIN')) {
+      return;
+    }
+    this.activeTab = tab;
+  }
   loadUsers(): void {
     this.adminDashboardService.getUsers().subscribe(data => (this.users = data));
   }

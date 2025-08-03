@@ -4,13 +4,17 @@
 
     <!-- Tabs -->
     <div class="btn-group mb-4">
+      <!-- Users tab: only admin -->
       <button
+        *ngIf="hasRole('ROLE_ADMIN')"
         class="btn"
         [ngClass]="{ 'btn-success text-white': activeTab === 'users', 'btn-outline-secondary': activeTab !== 'users' }"
         (click)="setTab('users')"
       >
         👥 Utilisateurs
       </button>
+
+      <!-- Transactions tab: both conseiller & admin -->
       <button
         class="btn"
         [ngClass]="{ 'btn-success text-white': activeTab === 'transactions', 'btn-outline-secondary': activeTab !== 'transactions' }"
@@ -18,13 +22,18 @@
       >
         ✅ Transactions
       </button>
+
+      <!-- Logs tab: only admin -->
       <button
+        *ngIf="hasRole('ROLE_ADMIN')"
         class="btn"
         [ngClass]="{ 'btn-success text-white': activeTab === 'logs', 'btn-outline-secondary': activeTab !== 'logs' }"
         (click)="setTab('logs')"
       >
         📜 Logs
       </button>
+
+      <!-- Accounts tab: both conseiller & admin -->
       <button
         class="btn"
         [ngClass]="{ 'btn-success text-white': activeTab === 'accounts', 'btn-outline-secondary': activeTab !== 'accounts' }"
