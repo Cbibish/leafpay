@@ -14,6 +14,15 @@ interface Transaction {
   compteDestination?: { id: number; iban?: string };
 }
 
+interface CompteDTO {
+  compteId: number; // Note: compteId, not id
+  iban: string;
+  typeCompte: string;
+  solde: number;
+  utilisateurId: number;
+  roleUtilisateurSurCeCompte?: string;
+}
+
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
@@ -23,16 +32,32 @@ interface Transaction {
 })
 export class ClientDashboardComponent implements OnInit {
   activeTab: 'account' | 'money' | 'transfer' = 'account';
-  comptes: any[] = [];
+  comptes: CompteDTO[] = [];
   loading = true;
   transactions: Transaction[] = [];
   selectedCompteId?: number;
 
-  // Deposit / Withdraw
   amount: number | null = null;
   operationType: 'depot' | 'retrait' = 'depot';
   moneyOperationMessage = '';
   moneyOperationSuccess = false;
+  ibanCheckMessage: string = '';
+
+  showTransferForm = false;
+  ibanValid = false;
+
+  transferForm = {
+    fromAccountId: null as number | null,
+    toIban: '',
+    toAccount: null as CompteDTO | null,
+    amount: null as number | null,
+    justificatif: 'Invoice #7890',
+    moyenValidation: 'SMS Code',
+  };
+
+  transferLoading = false;
+  transferMessage = '';
+  transferSuccess = false;
 
   constructor(
     private accountService: AccountService,
@@ -54,15 +79,15 @@ export class ClientDashboardComponent implements OnInit {
 
   loadComptes(userId: number): void {
     this.loading = true;
-    this.http.get<any[]>(`/api/utilisateur-comptes/utilisateur/${userId}/details`).subscribe({
+    this.http.get<CompteDTO[]>(`/api/utilisateur-comptes/utilisateur/${userId}/details`).subscribe({
       next: comptes => {
         this.comptes = comptes;
         this.loading = false;
+
         if (comptes.length > 0) {
           this.selectedCompteId = comptes[0].compteId;
-          if (this.selectedCompteId != null) {
-            this.loadTransactions(this.selectedCompteId);
-          }
+          this.transferForm.fromAccountId = this.selectedCompteId;
+          this.loadTransactions(this.selectedCompteId);
         } else {
           this.selectedCompteId = undefined;
           this.transactions = [];
@@ -97,6 +122,14 @@ export class ClientDashboardComponent implements OnInit {
     const newCompteId = Number(selectElement.value);
     this.selectedCompteId = newCompteId;
     this.loadTransactions(newCompteId);
+
+    if (this.showTransferForm) {
+      this.transferForm.fromAccountId = newCompteId;
+    }
+  }
+
+  selectTransferFromAccount(account: CompteDTO) {
+    this.transferForm.fromAccountId = account.compteId;
   }
 
   get transferTransactions(): Transaction[] {
@@ -119,73 +152,155 @@ export class ClientDashboardComponent implements OnInit {
       montant: this.amount,
     };
 
-    let request$;
-
-    if (this.operationType === 'depot') {
-      request$ = this.http.post('/api/transactions/deposit', payload);
-    } else {
-      request$ = this.http.post('/api/transactions/withdraw', payload);
-    }
+    const request$ =
+      this.operationType === 'depot'
+        ? this.http.post('/api/transactions/deposit', payload)
+        : this.http.post('/api/transactions/withdraw', payload);
 
     request$.subscribe({
       next: () => {
         this.moneyOperationMessage = `Opération ${this.operationType === 'depot' ? 'de dépôt' : 'de retrait'} réussie !`;
         this.moneyOperationSuccess = true;
-
-        // Refresh comptes and transactions to show updated balance and history
         if (this.selectedCompteId != null) {
-          const userId = this.comptes.length > 0 ? this.comptes[0].utilisateurId : undefined;
-          if (userId) {
-            this.loadComptes(userId);
-          }
           this.loadTransactions(this.selectedCompteId);
         }
-
-        // reset form
         this.amount = null;
         this.operationType = 'depot';
       },
       error: err => {
-        if (err?.error) {
-          const error = err.error;
-
-          // Handle Insufficient Balance error
-          if (error.title == 'Insufficient balance') {
-            this.moneyOperationMessage = 'Not enough balance';
-            this.moneyOperationSuccess = false;
-            return;
-          }
-
-          // Handle Withdrawal Attempt Limit Exceeded
-          if (error.title === 'Withdrawal attempt limit reached' || error.message === 'error.withdrawalLimitExceeded') {
-            this.moneyOperationMessage = 'You have reached the maximum number of withdrawals allowed today for this account.';
-            this.moneyOperationSuccess = false;
-            return;
-          }
-
-          // ... your existing error parsing here ...
-          if (typeof error === 'string') {
-            this.moneyOperationMessage = error;
-          } else if (typeof error === 'object') {
-            if ('text' in error && typeof error.text === 'string') {
-              this.moneyOperationMessage = error.text;
-              this.moneyOperationSuccess = true;
-            } else if ('message' in error && typeof error.message === 'string') {
-              this.moneyOperationMessage = error.message;
-            } else if (Object.keys(error).length === 0) {
-              this.moneyOperationMessage = 'Unknown error occurred';
-            } else {
-              this.moneyOperationMessage = JSON.stringify(error);
-            }
-          } else {
-            this.moneyOperationMessage = 'An error occurred during the operation.';
-          }
-        } else {
-          this.moneyOperationMessage = 'An error occurred during the operation.';
-        }
-        this.moneyOperationSuccess =
-          this.moneyOperationMessage.toLowerCase().includes('success') || this.moneyOperationMessage.toLowerCase().includes('réussi');
+        this.handleMoneyError(err);
       },
     });
+  }
+
+  private handleMoneyError(err: any) {
+    this.moneyOperationSuccess = false;
+    this.moneyOperationMessage =
+      err?.error?.title === 'Insufficient balance' ? 'Solde insuffisant' : err?.error?.message || "Erreur lors de l'opération";
+  }
+
+  openTransferForm() {
+    this.transferMessage = '';
+    this.transferSuccess = false;
+    this.showTransferForm = true;
+
+    this.transferForm = {
+      fromAccountId: this.selectedCompteId ?? (this.comptes.length > 0 ? this.comptes[0].compteId : null),
+      toIban: '',
+      toAccount: null,
+      amount: null,
+      justificatif: 'Invoice #7890',
+      moyenValidation: 'SMS Code',
+    };
+  }
+
+  closeTransferForm() {
+    this.showTransferForm = false;
+  }
+
+  isTransferFormValid(): boolean {
+    const f = this.transferForm;
+    return (
+      f.fromAccountId != null &&
+      f.toAccount != null &&
+      f.amount != null &&
+      f.amount > 0 &&
+      f.justificatif.trim().length > 0 &&
+      f.moyenValidation.trim().length > 0
+    );
+  }
+
+  checkIbanExists(iban: string): void {
+    if (!iban || iban.trim().length < 10) {
+      this.ibanValid = false;
+      this.ibanCheckMessage = 'IBAN trop court ou invalide.';
+      this.transferForm.toAccount = null;
+      return;
+    }
+
+    this.http.get<CompteDTO>(`/api/comptes/by-iban?iban=${encodeURIComponent(iban.trim())}`).subscribe({
+      next: compte => {
+        this.ibanValid = true;
+        this.transferForm.toAccount = compte;
+        this.ibanCheckMessage = '';
+      },
+      error: () => {
+        this.ibanValid = false;
+        this.transferForm.toAccount = null;
+        this.ibanCheckMessage = 'IBAN introuvable.';
+      },
+    });
+  }
+
+  submitTransfer(): void {
+    const f = this.transferForm;
+
+    if (
+      f.fromAccountId == null ||
+      f.toAccount == null ||
+      f.amount == null ||
+      f.amount <= 0 ||
+      !f.justificatif?.trim() ||
+      !f.moyenValidation?.trim()
+    ) {
+      this.transferMessage = 'Veuillez remplir correctement tous les champs et vérifier l’IBAN.';
+      this.transferSuccess = false;
+      return;
+    }
+
+    // Get fromAccount IBAN
+    const fromAccount = this.comptes.find(c => c.compteId === f.fromAccountId);
+    if (!fromAccount || !fromAccount.iban) {
+      this.transferMessage = "IBAN de l'expéditeur introuvable.";
+      this.transferSuccess = false;
+      return;
+    }
+
+    const payload = {
+      fromIban: fromAccount.iban,
+      toIban: f.toAccount.iban,
+      amount: f.amount,
+      justificatif: f.justificatif.trim(),
+      moyenValidation: f.moyenValidation.trim(),
+    };
+
+    this.transferLoading = true;
+    this.http.post('/api/comptes/transfer-by-iban', payload).subscribe({
+      next: () => {
+        this.transferMessage = 'Virement effectué avec succès !';
+        this.transferSuccess = true;
+
+        if (f.fromAccountId != null) {
+          this.loadTransactions(f.fromAccountId);
+        }
+        this.closeTransferForm();
+        this.transferLoading = false;
+      },
+      error: err => {
+        this.transferMessage =
+          err?.error?.title === 'Insufficient balance' ? 'Solde insuffisant' : err?.error?.message || 'Erreur lors du virement';
+        this.transferSuccess = false;
+        this.transferLoading = false;
+      },
+    });
+  }
+
+  refaireVirement(transaction: Transaction) {
+    this.transferForm = {
+      fromAccountId: transaction.compteSource.id,
+      toIban: transaction.compteDestination?.iban || '',
+      toAccount: null,
+      amount: transaction.montant,
+      justificatif: 'Invoice #7890',
+      moyenValidation: 'SMS Code',
+    };
+    this.openTransferForm();
+    if (this.transferForm.toIban) {
+      this.checkIbanExists(this.transferForm.toIban);
+    }
+  }
+
+  onFromAccountChange(value: string) {
+    this.transferForm.fromAccountId = Number(value);
   }
 }

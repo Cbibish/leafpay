@@ -2,7 +2,10 @@ package com.leafpay.web.rest;
 
 import com.leafpay.repository.CompteRepository;
 import com.leafpay.service.CompteService;
+import com.leafpay.service.TransactionService;
 import com.leafpay.service.dto.CompteDTO;
+import com.leafpay.service.dto.TransferByIbanRequestDTO;
+import com.leafpay.service.dto.TransferRequestDTO;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +50,13 @@ public class CompteResource {
 
     private final CompteRepository compteRepository;
 
-    public CompteResource(CompteService compteService, CompteRepository compteRepository) {
-        this.compteService = compteService;
-        this.compteRepository = compteRepository;
-    }
+    private final TransactionService transactionService;
+
+public CompteResource(CompteService compteService, CompteRepository compteRepository, TransactionService transactionService) {
+    this.compteService = compteService;
+    this.compteRepository = compteRepository;
+    this.transactionService = transactionService;
+}
 
     /**
      * {@code POST  /comptes} : Create a new compte.
@@ -219,10 +226,66 @@ public class CompteResource {
     }
 
     @PutMapping("/{id}/deactivate")
-    public ResponseEntity<CompteDTO> deactivateAccount(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        String dateStr = payload.get("dateFermeture");
-        LocalDateTime fermetureDate = dateStr != null ? LocalDateTime.parse(dateStr) : null;
-        CompteDTO updated = compteService.deactivateAccount(id, fermetureDate);
-        return ResponseEntity.ok(updated);
+   public ResponseEntity<CompteDTO> deactivateAccount(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    String dateStr = payload.get("dateFermeture");
+    Instant fermetureInstant = dateStr != null ? Instant.parse(dateStr) : Instant.now();
+    CompteDTO updated = compteService.deactivateAccount(id, fermetureInstant);
+    return ResponseEntity.ok(updated);
+}
+
+
+
+    /**
+     * PUT /{id}/fermer : close an account by setting its fermeture date to now.
+     */
+    @PutMapping("/{id}/fermer")
+    public ResponseEntity<CompteDTO> closeAccount(@PathVariable Long id) {
+        try {
+            CompteDTO updated = compteService.deactivateAccount(id, Instant.now());
+            return ResponseEntity.ok(updated);
+        } catch (BadRequestAlertException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
+
+    /**
+     * GET /by-iban?iban=... : get account by IBAN.
+     */
+    @GetMapping("/by-iban")
+    public ResponseEntity<CompteDTO> findByIban(@RequestParam String iban) {
+        Optional<CompteDTO> compte = compteService.findByIban(iban);
+        return compte.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+@PostMapping("/transfer-by-iban")
+public ResponseEntity<String> transferByIban(@Valid @RequestBody TransferByIbanRequestDTO transferRequest) {
+    LOG.debug("REST request to transfer money by IBAN: {}", transferRequest);
+
+    // Lookup comptes by IBAN
+    Optional<CompteDTO> fromCompteOpt = compteService.findByIban(transferRequest.getFromIban());
+    Optional<CompteDTO> toCompteOpt = compteService.findByIban(transferRequest.getToIban());
+
+    if (fromCompteOpt.isEmpty()) {
+        return ResponseEntity.badRequest().body("Sender IBAN not found");
+    }
+    if (toCompteOpt.isEmpty()) {
+        return ResponseEntity.badRequest().body("Recipient IBAN not found");
+    }
+
+    // Create TransferRequestDTO with compte IDs
+    TransferRequestDTO transferDto = new TransferRequestDTO();
+    transferDto.setFromAccountId(fromCompteOpt.get().getId());
+    transferDto.setToAccountId(toCompteOpt.get().getId());
+    transferDto.setAmount(transferRequest.getAmount());
+    transferDto.setJustificatif(transferRequest.getJustificatif());
+    transferDto.setMoyenValidation(transferRequest.getMoyenValidation());
+
+    try {
+        transactionService.transferMoney(transferDto);
+        return ResponseEntity.ok("Transfer completed successfully");
+    } catch (BadRequestAlertException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
+
 }

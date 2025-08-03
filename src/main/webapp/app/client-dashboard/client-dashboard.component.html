@@ -41,8 +41,8 @@
       <h3 class="text-success fw-bold mb-4">Mes comptes</h3>
 
       <div *ngIf="comptes.length > 1" class="mb-3">
-        <label for="accountSelect" class="form-label">Choisir un compte</label>
-        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+        <label for="accountSelectAccount" class="form-label">Choisir un compte</label>
+        <select id="accountSelectAccount" class="form-select" [(ngModel)]="selectedCompteId" (change)="onAccountChange($event)">
           <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
         </select>
       </div>
@@ -75,8 +75,8 @@
     <!-- Money Tab -->
     <div *ngIf="activeTab === 'money'">
       <div *ngIf="comptes.length > 1" class="mb-3">
-        <label for="accountSelect" class="form-label">Choisir un compte</label>
-        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+        <label for="accountSelectMoney" class="form-label">Choisir un compte</label>
+        <select id="accountSelectMoney" class="form-select" [(ngModel)]="selectedCompteId" (change)="onAccountChange($event)">
           <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
         </select>
       </div>
@@ -103,22 +103,29 @@
         <div
           *ngIf="moneyOperationMessage"
           class="mt-3 alert"
-          [ngClass]="{ 'alert-success': moneyOperationSuccess, 'alert-danger': !moneyOperationSuccess }"
+          [ngClass]="{
+            'alert-success': moneyOperationSuccess,
+            'alert-danger': !moneyOperationSuccess,
+          }"
         >
           {{ moneyOperationMessage }}
         </div>
       </div>
     </div>
 
-    <!-- ✅ Transfer Tab -->
+    <!-- Transfer Tab -->
     <div *ngIf="activeTab === 'transfer'">
       <h3 class="text-success fw-bold mb-4">Mes Derniers virements</h3>
+
       <div *ngIf="comptes.length > 1" class="mb-3">
-        <label for="accountSelect" class="form-label">Choisir un compte</label>
-        <select id="accountSelect" class="form-select" (change)="onAccountChange($event)">
+        <label for="accountSelectTransfer" class="form-label">Choisir un compte</label>
+        <select id="accountSelectTransfer" class="form-select" [(ngModel)]="selectedCompteId" (change)="onAccountChange($event)">
           <option *ngFor="let compte of comptes" [value]="compte.compteId">{{ compte.typeCompte }} - {{ compte.iban }}</option>
         </select>
       </div>
+
+      <button class="btn btn-success mb-3" (click)="openTransferForm()">Faire un virement</button>
+
       <div class="card p-4">
         <h5 class="fw-bold mb-3">Derniers virements</h5>
 
@@ -132,8 +139,114 @@
             &rarr; vers compte ID {{ t.compteDestination?.id }}
             <span *ngIf="t.compteDestination?.iban"> (IBAN: {{ t.compteDestination?.iban }}) </span>
             — Montant : {{ t.montant | number: '1.2-2' }} €
-            <button class="btn btn-sm btn-outline-primary float-end">Refaire un virement</button>
+            <button class="btn btn-sm btn-outline-primary float-end" (click)="refaireVirement(t)">Refaire un virement</button>
           </p>
+        </div>
+      </div>
+
+      <!-- Transfer Modal -->
+      <div
+        *ngIf="showTransferForm"
+        class="modal d-block"
+        tabindex="-1"
+        role="dialog"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; z-index: 1050"
+      >
+        <div class="modal-dialog" style="position: relative; z-index: 1060">
+          <div class="modal-content p-3">
+            <div class="modal-header">
+              <h5 class="modal-title">Faire un virement</h5>
+              <button type="button" class="btn-close" (click)="closeTransferForm()"></button>
+            </div>
+            <div class="modal-body">
+              <form #transferFormRef="ngForm" (ngSubmit)="submitTransfer()">
+                <!-- From account picklist -->
+                <div class="mb-3">
+                  <label class="form-label">Compte source</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      class="btn"
+                      [ngClass]="{
+                        'btn-success': transferForm.fromAccountId === compte.compteId,
+                        'btn-outline-secondary': transferForm.fromAccountId !== compte.compteId,
+                      }"
+                      *ngFor="let compte of comptes"
+                      (click)="selectTransferFromAccount(compte)"
+                    >
+                      {{ compte.typeCompte }} - {{ compte.iban }}
+                    </button>
+                  </div>
+
+                  <div *ngIf="!transferForm.fromAccountId" class="text-danger mt-2">Veuillez sélectionner un compte source.</div>
+                </div>
+
+                <!-- Destination IBAN input -->
+                <div class="mb-3">
+                  <label for="destIban" class="form-label">IBAN destinataire</label>
+                  <input
+                    id="destIban"
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="transferForm.toIban"
+                    name="destIban"
+                    required
+                    #destIbanInput="ngModel"
+                    (blur)="checkIbanExists(transferForm.toIban)"
+                    placeholder="Entrez l'IBAN du destinataire"
+                  />
+
+                  <div *ngIf="destIbanInput.invalid && destIbanInput.touched" class="text-danger">Veuillez entrer un IBAN valide.</div>
+
+                  <div *ngIf="ibanCheckMessage" [ngClass]="{ 'text-danger': !ibanValid, 'text-success': ibanValid }">
+                    {{ ibanCheckMessage }}
+                  </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                  <label for="amount" class="form-label">Montant (€)</label>
+                  <input
+                    id="amount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    class="form-control"
+                    required
+                    [(ngModel)]="transferForm.amount"
+                    name="amount"
+                    #amountInput="ngModel"
+                    placeholder="Entrez le montant"
+                  />
+                  <div *ngIf="amountInput.invalid && amountInput.touched" class="text-danger">Veuillez entrer un montant valide.</div>
+                </div>
+
+                <input type="hidden" [(ngModel)]="transferForm.justificatif" name="justificatif" />
+                <input type="hidden" [(ngModel)]="transferForm.moyenValidation" name="moyenValidation" />
+
+                <!-- Submit -->
+                <button
+                  type="submit"
+                  class="btn btn-success"
+                  [disabled]="!transferFormRef.form.valid || !transferForm.fromAccountId || !ibanValid"
+                >
+                  Envoyer le virement
+                </button>
+                <button type="button" class="btn btn-secondary ms-2" (click)="closeTransferForm()">Annuler</button>
+              </form>
+
+              <div
+                *ngIf="transferMessage"
+                class="mt-3 alert"
+                [ngClass]="{
+                  'alert-success': transferSuccess,
+                  'alert-danger': !transferSuccess,
+                }"
+              >
+                {{ transferMessage }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
