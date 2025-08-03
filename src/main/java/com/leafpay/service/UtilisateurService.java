@@ -12,14 +12,20 @@ import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.dto.UtilisateurDTO;
 import com.leafpay.service.mapper.UtilisateurMapper;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
+import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,13 +129,11 @@ public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
 
     public UtilisateurDTO update(UtilisateurDTO utilisateurDTO) {
     LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
-    Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
 
-    // Encode password if present
-    if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isEmpty()) {
-        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
-    }
+    Utilisateur existingUser = utilisateurRepository.findById(utilisateurDTO.getId())
+        .orElseThrow(() -> new IllegalArgumentException("User not found with id " + utilisateurDTO.getId()));
 
+    // Update role if provided
     if (utilisateurDTO.getRole() != null) {
         Role role = null;
         if (utilisateurDTO.getRole().getId() != null) {
@@ -139,43 +143,59 @@ public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
             role = roleRepository.findByNom(utilisateurDTO.getRole().getNom())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
         }
-
-        if (role != null) {
-            utilisateur.setRole(role);
-        }
+        existingUser.setRole(role);
     }
 
-    utilisateur = utilisateurRepository.save(utilisateur);
-    return utilisateurMapper.toDto(utilisateur);
-}
+    // Handle password: encode only if password is non-null AND different from existing password hash
+    if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
+        boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(), existingUser.getMotDePasse());
+        if (!passwordMatches) {
+            existingUser.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+        }
+        // else keep existing hashed password (do nothing)
+    }
 
+    // Update other fields from DTO to entity, except password and role (already handled)
+    utilisateurMapper.partialUpdate(existingUser, utilisateurDTO);
+
+    Utilisateur savedUser = utilisateurRepository.save(existingUser);
+    return utilisateurMapper.toDto(savedUser);
+}
     /**
      * Partially update a utilisateur.
      *
      * @param utilisateurDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<UtilisateurDTO> partialUpdate(UtilisateurDTO utilisateurDTO) {
-        LOG.debug("Request to partially update Utilisateur : {}", utilisateurDTO);
+   
+public Optional<UtilisateurDTO> partialUpdate(UtilisateurDTO utilisateurDTO) {
+    LOG.debug("Request to partially update Utilisateur : {}", utilisateurDTO);
 
-        return utilisateurRepository
-                .findById(utilisateurDTO.getId())
-                .map(existingUtilisateur -> {
-                    utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+    return utilisateurRepository.findById(utilisateurDTO.getId())
+        .map(existingUtilisateur -> {
+            // Update role if present
+            if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
+                Role role = roleRepository.findById(utilisateurDTO.getRole().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+                existingUtilisateur.setRole(role);
+            }
 
-                    if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
-                        Role role = roleRepository
-                                .findById(utilisateurDTO.getRole().getId())
-                                .orElseThrow(() -> new IllegalArgumentException(
-                                        "Invalid Role ID: " + utilisateurDTO.getRole().getId()));
-                        existingUtilisateur.setRole(role);
-                    }
+            // Handle password: encode only if present and different
+            if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
+                boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(), existingUtilisateur.getMotDePasse());
+                if (!passwordMatches) {
+                    existingUtilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+                }
+            }
 
-                    return existingUtilisateur;
-                })
-                .map(utilisateurRepository::save)
-                .map(utilisateurMapper::toDto);
-    }
+            // Update other fields from DTO to entity except password and role
+            utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+
+            return existingUtilisateur;
+        })
+        .map(utilisateurRepository::save)
+        .map(utilisateurMapper::toDto);
+}
 
     /**
      * Get all the utilisateurs.
@@ -221,4 +241,34 @@ public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
         return utilisateurRepository.findByEmail(email)
                 .map(utilisateurMapper::toDto);
     }
+
+    @Transactional(readOnly = true)
+public List<UtilisateurDTO> findAll() {
+    LOG.debug("Request to get all Utilisateurs (no pagination)");
+    return utilisateurRepository.findAll().stream()
+        .map(utilisateurMapper::toDto)
+        .collect(Collectors.toList());
+}
+@Transactional(readOnly = true)
+public Utilisateur getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null || !authentication.isAuthenticated()) {
+        throw new RuntimeException("No authenticated user found");
+    }
+
+    String username;
+
+    Object principal = authentication.getPrincipal();
+
+    if (principal instanceof UserDetails) {
+        username = ((UserDetails) principal).getUsername();
+    } else {
+        username = principal.toString();
+    }
+
+    // Now find the user by username (email or login, depending on your setup)
+    return utilisateurRepository.findByEmail(username)
+            .orElseThrow(() -> new RuntimeException("User not found: " + username));
+}
 }

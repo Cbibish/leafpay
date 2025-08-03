@@ -142,12 +142,12 @@ public class UtilisateurResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of utilisateurs in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<UtilisateurDTO>> getAllUtilisateurs(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Utilisateurs");
-        Page<UtilisateurDTO> page = utilisateurService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
-    }
+public ResponseEntity<List<UtilisateurDTO>> getAllUtilisateurs() {
+    LOG.debug("REST request to get all Utilisateurs");
+    List<UtilisateurDTO> utilisateurs = utilisateurService.findAll();  // call non-paginated service method
+    return ResponseEntity.ok().body(utilisateurs);
+}
+
 
     /**
      * {@code GET  /utilisateurs/:id} : get the "id" utilisateur.

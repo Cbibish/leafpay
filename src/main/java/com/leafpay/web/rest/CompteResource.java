@@ -1,9 +1,12 @@
 package com.leafpay.web.rest;
 
+import com.leafpay.domain.Utilisateur;
 import com.leafpay.repository.CompteRepository;
 import com.leafpay.service.CompteService;
 import com.leafpay.service.TransactionService;
+import com.leafpay.service.UtilisateurService;
 import com.leafpay.service.dto.CompteDTO;
+import com.leafpay.service.dto.LinkAccountRequestDTO;
 import com.leafpay.service.dto.TransferByIbanRequestDTO;
 import com.leafpay.service.dto.TransferRequestDTO;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
@@ -51,11 +54,13 @@ public class CompteResource {
     private final CompteRepository compteRepository;
 
     private final TransactionService transactionService;
+    private final UtilisateurService utilisateurService;
 
-public CompteResource(CompteService compteService, CompteRepository compteRepository, TransactionService transactionService) {
+public CompteResource(CompteService compteService, CompteRepository compteRepository, TransactionService transactionService, UtilisateurService utilisateurService) {
     this.compteService = compteService;
     this.compteRepository = compteRepository;
     this.transactionService = transactionService;
+    this.utilisateurService = utilisateurService; 
 }
 
     /**
@@ -287,5 +292,39 @@ public ResponseEntity<String> transferByIban(@Valid @RequestBody TransferByIbanR
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
+
+@PostMapping("/{compteId}/link")
+public ResponseEntity<String> linkAccountById(
+    @PathVariable Long compteId,
+    @RequestParam Long userId  // accept userId explicitly
+) {
+    try {
+        compteService.linkCompteToUser(compteId, userId);
+        return ResponseEntity.ok("Account linked successfully to user");
+    } catch (BadRequestAlertException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Internal server error");
+    }
+}
+@PostMapping("/link-by-iban")
+public ResponseEntity<String> linkAccountByIban(@Valid @RequestBody LinkAccountRequestDTO request) {
+    Optional<CompteDTO> compteOpt = compteService.findByIban(request.getIban());
+    if (compteOpt.isEmpty()) {
+        return ResponseEntity.badRequest().body("Account with IBAN not found");
+    }
+
+    try {
+        compteService.linkCompteToUser(compteOpt.get().getId(), request.getUserId());
+        return ResponseEntity.ok("Account linked successfully to user");
+    } catch (BadRequestAlertException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Internal server error");
+    }
+}
+
+
+
 
 }

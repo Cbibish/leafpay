@@ -2,7 +2,11 @@ package com.leafpay.service;
 
 import com.leafpay.domain.Compte;
 import com.leafpay.domain.TypeTransaction;
+import com.leafpay.domain.Utilisateur;
+import com.leafpay.domain.UtilisateurCompte;
 import com.leafpay.repository.CompteRepository;
+import com.leafpay.repository.UtilisateurCompteRepository;
+import com.leafpay.repository.UtilisateurRepository;
 import com.leafpay.service.dto.CompteDTO;
 import com.leafpay.service.mapper.CompteMapper;
 import com.leafpay.web.rest.errors.BadRequestAlertException;
@@ -31,20 +35,25 @@ import com.leafpay.service.TransactionService;
 @Transactional
 public class CompteService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CompteService.class);
-
     private final CompteRepository compteRepository;
-
+    private final UtilisateurRepository utilisateurRepository;
+    private final UtilisateurCompteRepository utilisateurCompteRepository;
     private final CompteMapper compteMapper;
-
     private final TransactionService transactionService;
 
-    public CompteService(CompteRepository compteRepository, CompteMapper compteMapper, TransactionService transactionService) {
-    this.compteRepository = compteRepository;
-    this.compteMapper = compteMapper;
-    this.transactionService = transactionService;
-}
-
+    public CompteService(
+        CompteRepository compteRepository,
+        UtilisateurRepository utilisateurRepository,
+        UtilisateurCompteRepository utilisateurCompteRepository,
+        CompteMapper compteMapper,
+        TransactionService transactionService
+    ) {
+        this.compteRepository = compteRepository;
+        this.utilisateurRepository = utilisateurRepository;
+        this.utilisateurCompteRepository = utilisateurCompteRepository;
+        this.compteMapper = compteMapper;
+        this.transactionService = transactionService;
+    }
 
     /**
      * Save a compte.
@@ -53,7 +62,6 @@ public class CompteService {
      * @return the persisted entity.
      */
     public CompteDTO save(CompteDTO compteDTO) {
-        LOG.debug("Request to save Compte : {}", compteDTO);
         Compte compte = compteMapper.toEntity(compteDTO);
         compte = compteRepository.save(compte);
         return compteMapper.toDto(compte);
@@ -66,7 +74,6 @@ public class CompteService {
      * @return the persisted entity.
      */
     public CompteDTO update(CompteDTO compteDTO) {
-        LOG.debug("Request to update Compte : {}", compteDTO);
         Compte compte = compteMapper.toEntity(compteDTO);
         compte = compteRepository.save(compte);
         return compteMapper.toDto(compte);
@@ -79,7 +86,6 @@ public class CompteService {
      * @return the persisted entity.
      */
     public Optional<CompteDTO> partialUpdate(CompteDTO compteDTO) {
-        LOG.debug("Request to partially update Compte : {}", compteDTO);
 
         return compteRepository
             .findById(compteDTO.getId())
@@ -100,7 +106,6 @@ public class CompteService {
      */
     @Transactional(readOnly = true)
     public Page<CompteDTO> findAll(Pageable pageable) {
-        LOG.debug("Request to get all Comptes");
         return compteRepository.findAll(pageable).map(compteMapper::toDto);
     }
 
@@ -112,7 +117,6 @@ public class CompteService {
      */
     @Transactional(readOnly = true)
     public Optional<CompteDTO> findOne(Long id) {
-        LOG.debug("Request to get Compte : {}", id);
         return compteRepository.findById(id).map(compteMapper::toDto);
     }
 
@@ -122,7 +126,6 @@ public class CompteService {
      * @param id the id of the entity.
      */
     public void delete(Long id) {
-        LOG.debug("Request to delete Compte : {}", id);
         compteRepository.deleteById(id);
     }
 
@@ -169,6 +172,20 @@ public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
 }
 public Optional<CompteDTO> findByIban(String iban) {
     return compteRepository.findByIban(iban).map(compteMapper::toDto);
+}
+@Transactional
+public void linkCompteToUser(Long compteId, Long userId) {
+    Compte compte = compteRepository.findById(compteId)
+        .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
+    Utilisateur utilisateur = utilisateurRepository.findById(userId)
+        .orElseThrow(() -> new BadRequestAlertException("Utilisateur not found", "utilisateur", "idnotfound"));
+
+    UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
+    utilisateurCompte.setCompte(compte);
+    utilisateurCompte.setUtilisateur(utilisateur);
+    // No role set
+
+    utilisateurCompteRepository.save(utilisateurCompte);
 }
 
 }
