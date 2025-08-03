@@ -26,6 +26,9 @@ export class AdminComponent implements OnInit {
   logs: Log[] = [];
   filteredLogs: Log[] = [];
   filterType: string = '';
+  accounts: any[] = [];
+  filteredAccounts: any[] = [];
+  ibanSearch: string = '';
 
   editingUser: any = null;
   selectedRoleId: number = 0;
@@ -43,6 +46,9 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
     this.loadTransactions();
     this.loadLogs();
+
+    this.loadAccounts();
+    this.filteredAccounts = [...this.accounts];
   }
 
   setTab(tab: string): void {
@@ -114,5 +120,37 @@ export class AdminComponent implements OnInit {
 
   rejectTransaction(id: number): void {
     this.adminDashboardService.rejectTransaction(id).subscribe(() => this.loadTransactions());
+  }
+  filterAccounts(): void {
+    const search = this.ibanSearch.trim().toLowerCase();
+
+    if (!search) {
+      // If search is empty, show all accounts
+      this.filteredAccounts = [...this.accounts];
+    } else {
+      this.filteredAccounts = this.accounts.filter(account => account.iban.toLowerCase().includes(search));
+
+      if (this.filteredAccounts.length === 0) {
+        alert(`Aucun compte trouvé pour l’IBAN "${this.ibanSearch}".`);
+      }
+    }
+  }
+
+  closeAccount(id: number): void {
+    this.adminDashboardService.deactivateAccount(id, { dateFermeture: new Date().toISOString() }).subscribe(updatedAccount => {
+      // Update the account in local list
+      const index = this.accounts.findIndex(acc => acc.id === id);
+      if (index !== -1) {
+        this.accounts[index] = updatedAccount;
+        this.filterAccounts();
+      }
+    });
+  }
+
+  loadAccounts(): void {
+    this.adminDashboardService.getActiveAccounts().subscribe(data => {
+      this.accounts = data;
+      this.filteredAccounts = [...this.accounts];
+    });
   }
 }

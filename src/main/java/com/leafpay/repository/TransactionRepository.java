@@ -1,6 +1,7 @@
 package com.leafpay.repository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import com.leafpay.domain.Transaction;
 import org.springframework.data.jpa.repository.*;
@@ -28,6 +29,17 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findImportantTransactions();
 
 List<Transaction> findByMontantGreaterThanAndStatut(BigDecimal montant, String status);
+
+@Query("""
+    SELECT COUNT(t) FROM Transaction t 
+    WHERE t.compteSource.id = :compteId 
+      AND t.dateTransaction BETWEEN :start AND :end
+      AND (t.typeTransaction = 'RETRAIT' OR t.typeTransaction = 'TRANSFER')
+""")
+long countOutgoingTransactionsWithinPeriod(
+    @Param("compteId") Long compteId,
+    @Param("start") Instant start,
+    @Param("end") Instant end);
 
 
     // If you want only incoming (destination)

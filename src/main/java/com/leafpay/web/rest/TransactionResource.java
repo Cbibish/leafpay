@@ -197,17 +197,17 @@ public class TransactionResource {
                 .build();
     }
 
-    @PostMapping("/transfer")
-    public ResponseEntity<String> transferMoney(@Valid @RequestBody TransferRequestDTO transferRequest) {
-        LOG.debug("REST request to transfer money: {}", transferRequest);
+   @PostMapping("/transfer")
+public ResponseEntity<String> transferMoney(@Valid @RequestBody TransferRequestDTO transferRequest) {
+    LOG.debug("REST request to transfer money: {}", transferRequest);
 
-        try {
-            transactionService.transferMoney(transferRequest);
-            return ResponseEntity.ok("Transfer completed successfully");
-        } catch (BadRequestAlertException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    try {
+        transactionService.transferMoney(transferRequest);
+        return ResponseEntity.ok("Transfer completed successfully");
+    } catch (BadRequestAlertException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     @GetMapping("/account/{compteId}")
     public ResponseEntity<List<TransactionDTO>> getTransactionsByCompteId(@PathVariable Long compteId) {

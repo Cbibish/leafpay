@@ -46,4 +46,15 @@ public class BadRequestAlertException extends ErrorResponseException {
     public ProblemDetailWithCause getProblemDetailWithCause() {
         return (ProblemDetailWithCause) this.getBody();
     }
+
+
+public static class EmailAlreadyUsedException extends BadRequestAlertException {
+    private static final long serialVersionUID = 1L;
+
+    public EmailAlreadyUsedException() {
+        super("Email already in use", "userManagement", "emailexists");
+    }
+}
+
+
 }

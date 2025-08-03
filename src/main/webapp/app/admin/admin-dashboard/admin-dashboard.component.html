@@ -1,127 +1,189 @@
-<div class="container mt-4">
-  <h2 class="text-center fw-bold mb-4">Espace Administrateur</h2>
+<div class="app-content">
+  <div class="container mt-4">
+    <h2 class="text-center fw-bold mb-4">Espace Administrateur</h2>
 
-  <!-- Tabs -->
-  <div class="btn-group mb-4">
-    <button
-      class="btn"
-      [ngClass]="{ 'btn-success text-white': activeTab === 'users', 'btn-outline-secondary': activeTab !== 'users' }"
-      (click)="setTab('users')"
-    >
-      👥 Utilisateurs
-    </button>
-    <button
-      class="btn"
-      [ngClass]="{ 'btn-success text-white': activeTab === 'transactions', 'btn-outline-secondary': activeTab !== 'transactions' }"
-      (click)="setTab('transactions')"
-    >
-      ✅ Transactions
-    </button>
-    <button
-      class="btn"
-      [ngClass]="{ 'btn-success text-white': activeTab === 'logs', 'btn-outline-secondary': activeTab !== 'logs' }"
-      (click)="setTab('logs')"
-    >
-      📜 Logs
-    </button>
-  </div>
-
-  <!-- Users -->
-  <div *ngIf="activeTab === 'users'">
-    <div class="card p-4">
-      <h4 class="text-success mb-3">Utilisateurs</h4>
-      <table class="table table-bordered table-striped">
-        <thead class="table-light">
-          <tr>
-            <th>Email</th>
-            <th>Rôle</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let user of users">
-            <td>{{ user.email }}</td>
-            <td>{{ user.role?.nom || '—' }}</td>
-            <td>
-              <button class="btn btn-sm btn-primary me-2" (click)="editUser(user)">Modifier</button>
-              <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Supprimer</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Tabs -->
+    <div class="btn-group mb-4">
+      <button
+        class="btn"
+        [ngClass]="{ 'btn-success text-white': activeTab === 'users', 'btn-outline-secondary': activeTab !== 'users' }"
+        (click)="setTab('users')"
+      >
+        👥 Utilisateurs
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{ 'btn-success text-white': activeTab === 'transactions', 'btn-outline-secondary': activeTab !== 'transactions' }"
+        (click)="setTab('transactions')"
+      >
+        ✅ Transactions
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{ 'btn-success text-white': activeTab === 'logs', 'btn-outline-secondary': activeTab !== 'logs' }"
+        (click)="setTab('logs')"
+      >
+        📜 Logs
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{ 'btn-success text-white': activeTab === 'accounts', 'btn-outline-secondary': activeTab !== 'accounts' }"
+        (click)="setTab('accounts')"
+      >
+        🏦 Comptes
+      </button>
     </div>
 
-    <!-- Modal -->
-    <div *ngIf="editingUser" class="modal-backdrop">
-      <div class="modal-container">
-        <h5>Modifier le rôle de l'utilisateur</h5>
-        <p><strong>Email:</strong> {{ editingUser.email }}</p>
+    <!-- Users -->
+    <div *ngIf="activeTab === 'users'">
+      <div class="card p-4">
+        <h4 class="text-success mb-3">Utilisateurs</h4>
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>{{ user.email }}</td>
+              <td>{{ user.role?.nom || '—' }}</td>
+              <td>
+                <button class="btn btn-sm btn-primary me-2" (click)="editUser(user)">Modifier</button>
+                <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        <label for="role">Nouveau rôle</label>
-        <select id="role" [(ngModel)]="selectedRoleId" class="form-control mb-3">
-          <option *ngFor="let role of availableRoles" [value]="role.id">{{ role.nom }}</option>
-        </select>
+      <!-- Modal -->
+      <div *ngIf="editingUser" class="modal-backdrop">
+        <div class="modal-container">
+          <h5>Modifier le rôle de l'utilisateur</h5>
+          <p><strong>Email:</strong> {{ editingUser.email }}</p>
 
-        <div class="d-flex justify-content-end">
-          <button class="btn btn-secondary me-2" (click)="closeModal()">Annuler</button>
-          <button class="btn btn-success" (click)="updateUserRole()">Enregistrer</button>
+          <label for="role">Nouveau rôle</label>
+          <select id="role" [(ngModel)]="selectedRoleId" class="form-control mb-3">
+            <option *ngFor="let role of availableRoles" [value]="role.id">{{ role.nom }}</option>
+          </select>
+
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-secondary me-2" (click)="closeModal()">Annuler</button>
+            <button class="btn btn-success" (click)="updateUserRole()">Enregistrer</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Transactions Validation -->
-  <div *ngIf="activeTab === 'transactions'">
-    <div class="card p-4">
-      <h4 class="text-success mb-3">Transactions importantes à valider</h4>
-      <div *ngIf="transactions.length === 0" class="text-muted">Aucune transaction à valider.</div>
-      <div *ngFor="let tx of transactions" class="border p-3 mb-2 rounded">
-        <p>
-          <strong>Montant :</strong> {{ tx.montant }} € | <strong>De :</strong> {{ tx.compteSource?.iban || '—' }} | <strong>À :</strong>
-          {{ tx.compteDestination?.iban || '—' }}
+    <!-- Transactions Validation -->
+    <div *ngIf="activeTab === 'transactions'">
+      <div class="card p-4">
+        <h4 class="text-success mb-3">Transactions importantes à valider</h4>
+        <div *ngIf="transactions.length === 0" class="text-muted">Aucune transaction à valider.</div>
+        <div *ngFor="let tx of transactions" class="border p-3 mb-2 rounded">
+          <p>
+            <strong>Montant :</strong> {{ tx.montant }} € | <strong>De :</strong> {{ tx.compteSource?.iban || '—' }} |
+            <strong>À :</strong>
+            {{ tx.compteDestination?.iban || '—' }}
 
-          <button class="btn btn-sm btn-outline-success float-end me-2" (click)="approveTransaction(tx.id)">Valider</button>
-          <button class="btn btn-sm btn-outline-danger float-end" (click)="rejectTransaction(tx.id)">Rejeter</button>
-        </p>
+            <button class="btn btn-sm btn-outline-success float-end me-2" (click)="approveTransaction(tx.id)">Valider</button>
+            <button class="btn btn-sm btn-outline-danger float-end" (click)="rejectTransaction(tx.id)">Rejeter</button>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Logs -->
-  <div *ngIf="activeTab === 'logs'">
-    <div class="card p-4">
-      <h4 class="text-success mb-3">Logs récents</h4>
+    <!-- Logs -->
+    <div *ngIf="activeTab === 'logs'">
+      <div class="card p-4">
+        <h4 class="text-success mb-3">Logs récents</h4>
 
-      <!-- Filter dropdown -->
-      <div class="mb-3">
-        <label for="filterType" class="form-label">Filtrer par type:</label>
-        <select id="filterType" class="form-select w-auto" (change)="onFilterChange($event)">
-          <option value="">Tous</option>
-          <option value="LOGIN">LOGIN</option>
-          <option value="SECURITY_ALERT">SECURITY_ALERT</option>
-        </select>
+        <!-- Filter dropdown -->
+        <div class="mb-3">
+          <label for="filterType" class="form-label">Filtrer par type:</label>
+          <select id="filterType" class="form-select w-auto" (change)="onFilterChange($event)">
+            <option value="">Tous</option>
+            <option value="LOGIN">LOGIN</option>
+            <option value="SECURITY_ALERT">SECURITY_ALERT</option>
+          </select>
+        </div>
+
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Horodatage</th>
+              <th>Type</th>
+              <th>IP Source</th>
+              <th>Statut</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of filteredLogs">
+              <td>{{ log.timestamp }}</td>
+              <td>{{ log.action }}</td>
+              <td>{{ log.ipUtilisateur }}</td>
+              <td>{{ log.resultat }}</td>
+              <td>{{ log.description }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </div>
+    <!-- Tabs -->
+    <!-- Comptes Tab Content -->
+    <div *ngIf="activeTab === 'accounts'">
+      <div class="card p-4 shadow">
+        <h4 class="text-success mb-3">Gestion des Comptes</h4>
 
-      <table class="table table-bordered table-striped">
-        <thead class="table-light">
-          <tr>
-            <th>Horodatage</th>
-            <th>Type</th>
-            <th>IP Source</th>
-            <th>Statut</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let log of filteredLogs">
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.action }}</td>
-            <td>{{ log.ipUtilisateur }}</td>
-            <td>{{ log.resultat }}</td>
-            <td>{{ log.description }}</td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Search bar -->
+        <div class="mb-3">
+          <input
+            [(ngModel)]="ibanSearch"
+            (input)="filterAccounts()"
+            class="form-control w-50"
+            placeholder="🔍 Rechercher un compte par IBAN..."
+          />
+        </div>
+
+        <!-- Accounts Table -->
+        <table class="table table-hover table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>IBAN</th>
+              <th>Type</th>
+              <th>Solde (€)</th>
+              <th>Statut</th>
+              <th>Clôturé ?</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let account of filteredAccounts">
+              <td>{{ account.iban }}</td>
+              <td>{{ account.typeCompte || '—' }}</td>
+              <td>{{ account.solde?.toFixed(2) }}</td>
+              <td>{{ account.statut || '—' }}</td>
+              <td>
+                <span class="badge" [ngClass]="account.dateFermeture ? 'bg-success' : 'bg-danger'">
+                  {{ account.dateFermeture ? 'Oui' : 'Non' }}
+                </span>
+              </td>
+              <td>
+                <button *ngIf="!account.dateFermeture" class="btn btn-sm btn-outline-danger" (click)="closeAccount(account.id)">
+                  Clôturer
+                </button>
+                <span *ngIf="account.dateFermeture" class="text-muted">Déjà clôturé</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredAccounts.length === 0" class="text-muted mt-3">Aucun compte trouvé pour l’IBAN "{{ ibanSearch }}".</div>
+      </div>
     </div>
   </div>
 </div>

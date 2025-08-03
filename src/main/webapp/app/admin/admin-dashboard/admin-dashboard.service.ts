@@ -5,6 +5,19 @@ import { TransactionService } from 'app/entities/transaction/service/transaction
 import { LogService } from 'app/entities/log/service/log.service';
 import { HttpClient } from '@angular/common/http';
 
+export interface CompteDTO {
+  id: number;
+  typeCompte: string;
+  solde: number;
+  plafondTransaction: number;
+  limiteRetraitsMensuels: number;
+  tauxInteret: number;
+  dateOuverture: string;
+  dateFermeture?: string | null;
+  statut: string;
+  iban: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminDashboardService {
   constructor(
@@ -51,5 +64,13 @@ export class AdminDashboardService {
 
   rejectTransaction(id: number): Observable<any> {
     return this.http.put(`/api/transactions/${id}/reject`, {});
+  }
+
+  getActiveAccounts() {
+    return this.http.get<CompteDTO[]>('/api/comptes/active');
+  }
+
+  deactivateAccount(id: number, payload: { dateFermeture: string }) {
+    return this.http.put<CompteDTO>(`/api/comptes/${id}/deactivate`, payload);
   }
 }
