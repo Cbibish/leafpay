@@ -148,12 +148,14 @@ public void logTransaction(Compte source, Compte destination, BigDecimal montant
 
 @Transactional
 public void transferMoney(TransferRequestDTO transferRequest) {
+    // we take both accounts neede for the transaction
     Compte fromAccount = compteRepository.findById(transferRequest.getFromAccountId())
         .orElseThrow(() -> new BadRequestAlertException("Source account not found", "transaction", "fromaccnotfound"));
 
     Compte toAccount = compteRepository.findById(transferRequest.getToAccountId())
         .orElseThrow(() -> new BadRequestAlertException("Destination account not found", "transaction", "toaccnotfound"));
 
+    //we get then do some checks on the sum(non null, is the number of mensual transactions not above the threshold, etc...)
     BigDecimal montant = transferRequest.getAmount();
     if (montant.compareTo(BigDecimal.ZERO) <= 0) {
         throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
@@ -171,7 +173,7 @@ public void transferMoney(TransferRequestDTO transferRequest) {
         throw new BadRequestAlertException("Insufficient balance", "transaction", "insufficientbalance");
     }
 
-    // Perform balance update
+    // Then we perform balance update
     fromAccount.setSolde(fromAccount.getSolde().subtract(montant));
     toAccount.setSolde(toAccount.getSolde().add(montant));
     compteRepository.save(fromAccount);

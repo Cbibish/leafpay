@@ -14,7 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(classes = { LeafpayApp.class, JacksonConfiguration.class, AsyncSyncConfiguration.class })
+@SpringBootTest(classes = { 
+    LeafpayApp.class, 
+    JacksonConfiguration.class, 
+    AsyncSyncConfiguration.class,
+    TestSecurityConfig.class   // add this here
+})
 @EmbeddedSQL
 public @interface IntegrationTest {
 }
+
