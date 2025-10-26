@@ -37,11 +37,19 @@ const routes: Routes = [
     path: 'client-dashboard',
     loadComponent: () => import(`./client-dashboard/client-dashboard.component`).then(m => m.ClientDashboardComponent),
     title: 'client-dashboard.title',
+    data: {
+      authorities: [Authority.USER],
+    },
+    canActivate: [UserRouteAccessService],
   },
   {
     path: 'profile',
     loadComponent: () => import(`./profile/profile.component`).then(m => m.ProfileComponent),
     title: 'profile.title',
+    data: {
+      authorities: [Authority.USER, Authority.ADMIN, Authority.CONSEILLER],
+    },
+    canActivate: [UserRouteAccessService],
   },
   {
     path: 'account',

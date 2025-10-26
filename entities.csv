@@ -1,0 +1,8 @@
+Label;Type;X;Y;Width;Height;Parent
+Role\n- nom: String(50);rectangle;100;100;180;80;
+Utilisateur\n- nom: String(100)\n- prenom: String(100)\n- email: String(255);rectangle;350;100;200;160;
+Compte\n- typeCompte: String(50)\n- solde: BigDecimal;rectangle;650;100;200;140;
+UtilisateurCompte\n- roleUtilisateurSurCeCompte: String(100);rectangle;350;300;180;80;
+Transaction\n- montant: BigDecimal\n- typeTransaction: String(50);rectangle;650;300;220;140;
+Log\n- action: String(255);rectangle;100;300;180;100;
+AlerteSecurite\n- typeAlerte: String(100);rectangle;100;480;180;120;

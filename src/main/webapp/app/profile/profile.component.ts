@@ -36,7 +36,7 @@ export class ProfileComponent implements OnInit {
     console.log('ProfileComponent initialized');
 
     this.accountService.identity().subscribe(account => {
-      if (account && account.email) {
+      if (account?.email) {
         console.log('Current user from AccountService:', account);
 
         // Now call API to get full utilisateur info

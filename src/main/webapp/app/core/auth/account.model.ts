@@ -13,7 +13,7 @@ export class Account {
     public activated?: boolean,
     public authorities: string[] = [],
     public firstName?: string | null,
-    public langKey: string = 'en',
+    public langKey = 'en',
     public lastName?: string | null,
     public login?: string,
     public imageUrl?: string | null,

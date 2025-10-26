@@ -1,0 +1,58 @@
+
+<mxfile host="app.diagrams.net">
+  <diagram name="SDF Architecture" id="sdf-architecture">
+    <mxGraphModel dx="1168" dy="714" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Nuxt.js Frontend -->
+        <mxCell id="2" value="Frontend (Nuxt.js)" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="60" width="160" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Backend Node.js -->
+        <mxCell id="3" value="Backend (Node.js + SQL)" style="shape=rectangle;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="300" y="60" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- SQL Database -->
+        <mxCell id="4" value="MID Database (SQL)" style="shape=cylinder;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="520" y="60" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Data Transformation -->
+        <mxCell id="5" value="Transformation JSON Payloads" style="shape=hexagon;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="300" y="160" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- MuleSoft API -->
+        <mxCell id="6" value="MuleSoft API" style="shape=rectangle;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="300" y="260" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Salesforce -->
+        <mxCell id="7" value="Salesforce" style="shape=cloud;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="300" y="360" width="180" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="8" style="endArrow=block;strokeColor=#000000;" edge="1" source="2" target="3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" style="endArrow=block;strokeColor=#000000;" edge="1" source="3" target="4" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" style="endArrow=block;strokeColor=#000000;" edge="1" source="3" target="5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" style="endArrow=block;strokeColor=#000000;" edge="1" source="5" target="6" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" style="endArrow=block;strokeColor=#000000;" edge="1" source="6" target="7" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

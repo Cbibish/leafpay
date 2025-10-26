@@ -197,17 +197,17 @@ public class TransactionResource {
                 .build();
     }
 
-   @PostMapping("/transfer")
-public ResponseEntity<String> transferMoney(@Valid @RequestBody TransferRequestDTO transferRequest) {
-    LOG.debug("REST request to transfer money: {}", transferRequest);
+    @PostMapping("/transfer")
+    public ResponseEntity<String> transferMoney(@Valid @RequestBody TransferRequestDTO transferRequest) {
+        LOG.debug("REST request to transfer money: {}", transferRequest);
 
-    try {
-        transactionService.transferMoney(transferRequest);
-        return ResponseEntity.ok("Transfer completed successfully");
-    } catch (BadRequestAlertException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+        try {
+            transactionService.transferMoney(transferRequest);
+            return ResponseEntity.ok("Transfer completed successfully");
+        } catch (BadRequestAlertException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
 
     @GetMapping("/account/{compteId}")
     public ResponseEntity<List<TransactionDTO>> getTransactionsByCompteId(@PathVariable Long compteId) {
@@ -216,26 +216,27 @@ public ResponseEntity<String> transferMoney(@Valid @RequestBody TransferRequestD
         return ResponseEntity.ok(transactions);
     }
 
-   @PostMapping("/withdraw")
-public ResponseEntity<?> withdraw(@RequestBody WithdrawalRequestDTO withdrawalRequest) {
-    try {
-        transactionService.withdraw(withdrawalRequest);
-        return ResponseEntity.ok("Withdrawal successful");
-    } catch (BadRequestAlertException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestBody WithdrawalRequestDTO withdrawalRequest) {
+        try {
+            transactionService.withdraw(withdrawalRequest);
+            return ResponseEntity.ok("Withdrawal successful");
+        } catch (BadRequestAlertException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
 
-@PostMapping("/deposit")
-public ResponseEntity<?> deposit(@RequestBody DepositRequestDTO depositRequest) {
-    try {
-        transactionService.deposit(depositRequest);
-        return ResponseEntity.ok("Deposit successful");
-    } catch (BadRequestAlertException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    @PostMapping("/deposit")
+    public ResponseEntity<?> deposit(@RequestBody DepositRequestDTO depositRequest) {
+        try {
+            transactionService.deposit(depositRequest);
+            return ResponseEntity.ok("Deposit successful");
+        } catch (BadRequestAlertException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
- @GetMapping("/important")
+
+    @GetMapping("/important")
     public ResponseEntity<List<TransactionDTO>> getImportantTransactions() {
         List<TransactionDTO> list = transactionService.findImportantTransactions();
         return ResponseEntity.ok(list);
@@ -247,14 +248,13 @@ public ResponseEntity<?> deposit(@RequestBody DepositRequestDTO depositRequest) 
         return ResponseEntity.ok(dto);
     }
 
-     @PutMapping("/{id}/reject")
-public ResponseEntity<TransactionDTO> rejectTransaction(
-        @PathVariable Long id,
-        @RequestParam(required = false, defaultValue = "Rejected by admin") String reason) {
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<TransactionDTO> rejectTransaction(
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "Rejected by admin") String reason) {
 
-    TransactionDTO dto = transactionService.rejectTransaction(id, reason);
-    return ResponseEntity.ok(dto);
-}
-
+        TransactionDTO dto = transactionService.rejectTransaction(id, reason);
+        return ResponseEntity.ok(dto);
+    }
 
 }

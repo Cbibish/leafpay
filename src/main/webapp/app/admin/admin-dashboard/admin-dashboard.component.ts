@@ -21,18 +21,18 @@ interface Log {
   styleUrls: ['./admin-dashboard.component.scss'],
 })
 export class AdminComponent implements OnInit {
-  activeTab: string = 'users';
+  activeTab = 'users';
   users: any[] = [];
   transactions: any[] = [];
   logs: Log[] = [];
   filteredLogs: Log[] = [];
-  filterType: string = '';
+  filterType = '';
   accounts: any[] = [];
   filteredAccounts: any[] = [];
-  ibanSearch: string = '';
+  ibanSearch = '';
   userAuthorities: string[] = [];
   editingUser: any = null;
-  selectedRoleId: number = 0;
+  selectedRoleId = 0;
 
   availableRoles = [
     { id: 1501, nom: 'NORMAL_USER' },

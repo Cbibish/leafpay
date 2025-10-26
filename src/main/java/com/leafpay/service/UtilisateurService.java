@@ -74,51 +74,51 @@ public class UtilisateurService {
      * @return the persisted entity.
      */
     @Transactional
-public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
-    // 1. Convert DTO to entity (usual JHipster mapping)
-    Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
+    public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
+        // 1. Convert DTO to entity (usual JHipster mapping)
+        Utilisateur utilisateur = utilisateurMapper.toEntity(utilisateurDTO);
 
-    // 2. Encode password before saving user
-    utilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+        // 2. Encode password before saving user
+        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
 
-    // 3. Set creation date if new
-    if (utilisateur.getDateCreation() == null) {
-        utilisateur.setDateCreation(Instant.now());
-    }
-
-    // 4. Save the user entity
-    utilisateur = utilisateurRepository.save(utilisateur);
-
-    // 5. Process comptes from DTO and create Compte + UtilisateurCompte for each
-    if (utilisateurDTO.getComptes() != null && !utilisateurDTO.getComptes().isEmpty()) {
-        for (CompteDTO compteDTO : utilisateurDTO.getComptes()) {
-            Compte compte = new Compte();
-            compte.setTypeCompte(compteDTO.getTypeCompte());
-            compte.setSolde(compteDTO.getSolde() != null ? compteDTO.getSolde() : BigDecimal.ZERO);
-            compte.setPlafondTransaction(compteDTO.getPlafondTransaction());
-            compte.setLimiteRetraitsMensuels(compteDTO.getLimiteRetraitsMensuels());
-            compte.setTauxInteret(compteDTO.getTauxInteret());
-            compte.setDateOuverture(compteDTO.getDateOuverture() != null ? compteDTO.getDateOuverture() : Instant.now());
-            compte.setDateFermeture(compteDTO.getDateFermeture());
-            compte.setStatut(compteDTO.getStatut());
-            compte.setIban(compteDTO.getIban());
-
-            // Save Compte
-            compte = compteRepository.save(compte);
-
-            // Create linking UtilisateurCompte
-            UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
-            utilisateurCompte.setUtilisateur(utilisateur);
-            utilisateurCompte.setCompte(compte);
-            utilisateurCompte.setRoleUtilisateurSurCeCompte("Owner"); // default role on creation
-            utilisateurCompteRepository.save(utilisateurCompte);
+        // 3. Set creation date if new
+        if (utilisateur.getDateCreation() == null) {
+            utilisateur.setDateCreation(Instant.now());
         }
+
+        // 4. Save the user entity
+        utilisateur = utilisateurRepository.save(utilisateur);
+
+        // 5. Process comptes from DTO and create Compte + UtilisateurCompte for each
+        if (utilisateurDTO.getComptes() != null && !utilisateurDTO.getComptes().isEmpty()) {
+            for (CompteDTO compteDTO : utilisateurDTO.getComptes()) {
+                Compte compte = new Compte();
+                compte.setTypeCompte(compteDTO.getTypeCompte());
+                compte.setSolde(compteDTO.getSolde() != null ? compteDTO.getSolde() : BigDecimal.ZERO);
+                compte.setPlafondTransaction(compteDTO.getPlafondTransaction());
+                compte.setLimiteRetraitsMensuels(compteDTO.getLimiteRetraitsMensuels());
+                compte.setTauxInteret(compteDTO.getTauxInteret());
+                compte.setDateOuverture(
+                        compteDTO.getDateOuverture() != null ? compteDTO.getDateOuverture() : Instant.now());
+                compte.setDateFermeture(compteDTO.getDateFermeture());
+                compte.setStatut(compteDTO.getStatut());
+                compte.setIban(compteDTO.getIban());
+
+                // Save Compte
+                compte = compteRepository.save(compte);
+
+                // Create linking UtilisateurCompte
+                UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
+                utilisateurCompte.setUtilisateur(utilisateur);
+                utilisateurCompte.setCompte(compte);
+                utilisateurCompte.setRoleUtilisateurSurCeCompte("Owner"); // default role on creation
+                utilisateurCompteRepository.save(utilisateurCompte);
+            }
+        }
+
+        // 6. Convert back to DTO to return
+        return utilisateurMapper.toDto(utilisateur);
     }
-
-    // 6. Convert back to DTO to return
-    return utilisateurMapper.toDto(utilisateur);
-}
-
 
     /**
      * Update a utilisateur.
@@ -128,74 +128,107 @@ public UtilisateurDTO save(UtilisateurDTO utilisateurDTO) {
      */
 
     public UtilisateurDTO update(UtilisateurDTO utilisateurDTO) {
-    LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
+        LOG.debug("Request to update Utilisateur : {}", utilisateurDTO);
 
-    Utilisateur existingUser = utilisateurRepository.findById(utilisateurDTO.getId())
-        .orElseThrow(() -> new IllegalArgumentException("User not found with id " + utilisateurDTO.getId()));
-
-    // Update role if provided
-    if (utilisateurDTO.getRole() != null) {
-        Role role = null;
-        if (utilisateurDTO.getRole().getId() != null) {
-            role = roleRepository.findById(utilisateurDTO.getRole().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
-        } else if (utilisateurDTO.getRole().getNom() != null) {
-            role = roleRepository.findByNom(utilisateurDTO.getRole().getNom())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role Name: " + utilisateurDTO.getRole().getNom()));
+        if (utilisateurDTO.getId() == null) {
+            throw new BadRequestAlertException("Invalid user ID: null", "utilisateur", "idnull");
         }
-        existingUser.setRole(role);
+
+        Utilisateur existingUser = utilisateurRepository.findById(utilisateurDTO.getId())
+                .orElseThrow(() -> new BadRequestAlertException("User not found with id " + utilisateurDTO.getId(),
+                        "utilisateur", "idnotfound"));
+
+        // Validate email if changed
+        if (utilisateurDTO.getEmail() != null && !utilisateurDTO.getEmail().equals(existingUser.getEmail())) {
+            utilisateurRepository.findByEmail(utilisateurDTO.getEmail()).ifPresent(userWithEmail -> {
+                if (!userWithEmail.getId().equals(existingUser.getId())) {
+                    throw new BadRequestAlertException("Email already in use", "utilisateur", "emailexists");
+                }
+            });
+        }
+
+        // Validate basic fields (example)
+        if (utilisateurDTO.getNom() == null || utilisateurDTO.getNom().trim().isEmpty()) {
+            throw new BadRequestAlertException("User last name is required", "utilisateur", "nomempty");
+        }
+        if (utilisateurDTO.getEmail() == null || utilisateurDTO.getEmail().trim().isEmpty()) {
+            throw new BadRequestAlertException("User email is required", "utilisateur", "emailempty");
+        }
+
+        // Update role if provided
+        if (utilisateurDTO.getRole() != null) {
+            Role role = null;
+            if (utilisateurDTO.getRole().getId() != null) {
+                role = roleRepository.findById(utilisateurDTO.getRole().getId())
+                        .orElseThrow(() -> new BadRequestAlertException(
+                                "Invalid Role ID: " + utilisateurDTO.getRole().getId(), "role", "idnotfound"));
+            } else if (utilisateurDTO.getRole().getNom() != null) {
+                role = roleRepository.findByNom(utilisateurDTO.getRole().getNom())
+                        .orElseThrow(() -> new BadRequestAlertException(
+                                "Invalid Role Name: " + utilisateurDTO.getRole().getNom(), "role", "nomnotfound"));
+            }
+            existingUser.setRole(role);
+        }
+
+        // Handle password: encode only if password provided AND different from existing
+        // hashed password
+        if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
+            boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(),
+                    existingUser.getMotDePasse());
+            if (!passwordMatches) {
+                existingUser.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+            }
+            // else keep existing hashed password (do nothing)
+        }
+
+        // Update other fields from DTO to entity, except password and role (already
+        // handled)
+        utilisateurMapper.partialUpdate(existingUser, utilisateurDTO);
+
+        Utilisateur savedUser = utilisateurRepository.save(existingUser);
+
+        LOG.info("User with ID {} updated successfully", savedUser.getId());
+
+        return utilisateurMapper.toDto(savedUser);
     }
 
-    // Handle password: encode only if password is non-null AND different from existing password hash
-    if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
-        boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(), existingUser.getMotDePasse());
-        if (!passwordMatches) {
-            existingUser.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
-        }
-        // else keep existing hashed password (do nothing)
-    }
-
-    // Update other fields from DTO to entity, except password and role (already handled)
-    utilisateurMapper.partialUpdate(existingUser, utilisateurDTO);
-
-    Utilisateur savedUser = utilisateurRepository.save(existingUser);
-    return utilisateurMapper.toDto(savedUser);
-}
     /**
      * Partially update a utilisateur.
      *
      * @param utilisateurDTO the entity to update partially.
      * @return the persisted entity.
      */
-   
-public Optional<UtilisateurDTO> partialUpdate(UtilisateurDTO utilisateurDTO) {
-    LOG.debug("Request to partially update Utilisateur : {}", utilisateurDTO);
 
-    return utilisateurRepository.findById(utilisateurDTO.getId())
-        .map(existingUtilisateur -> {
-            // Update role if present
-            if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
-                Role role = roleRepository.findById(utilisateurDTO.getRole().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Role ID: " + utilisateurDTO.getRole().getId()));
-                existingUtilisateur.setRole(role);
-            }
+    public Optional<UtilisateurDTO> partialUpdate(UtilisateurDTO utilisateurDTO) {
+        LOG.debug("Request to partially update Utilisateur : {}", utilisateurDTO);
 
-            // Handle password: encode only if present and different
-            if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
-                boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(), existingUtilisateur.getMotDePasse());
-                if (!passwordMatches) {
-                    existingUtilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
-                }
-            }
+        return utilisateurRepository.findById(utilisateurDTO.getId())
+                .map(existingUtilisateur -> {
+                    // Update role if present
+                    if (utilisateurDTO.getRole() != null && utilisateurDTO.getRole().getId() != null) {
+                        Role role = roleRepository.findById(utilisateurDTO.getRole().getId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                        "Invalid Role ID: " + utilisateurDTO.getRole().getId()));
+                        existingUtilisateur.setRole(role);
+                    }
 
-            // Update other fields from DTO to entity except password and role
-            utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+                    // Handle password: encode only if present and different
+                    if (utilisateurDTO.getMotDePasse() != null && !utilisateurDTO.getMotDePasse().isEmpty()) {
+                        boolean passwordMatches = passwordEncoder.matches(utilisateurDTO.getMotDePasse(),
+                                existingUtilisateur.getMotDePasse());
+                        if (!passwordMatches) {
+                            existingUtilisateur.setMotDePasse(passwordEncoder.encode(utilisateurDTO.getMotDePasse()));
+                        }
+                    }
 
-            return existingUtilisateur;
-        })
-        .map(utilisateurRepository::save)
-        .map(utilisateurMapper::toDto);
-}
+                    // Update other fields from DTO to entity except password and role
+                    utilisateurMapper.partialUpdate(existingUtilisateur, utilisateurDTO);
+
+                    return existingUtilisateur;
+                })
+                .map(utilisateurRepository::save)
+                .map(utilisateurMapper::toDto);
+    }
 
     /**
      * Get all the utilisateurs.
@@ -243,32 +276,33 @@ public Optional<UtilisateurDTO> partialUpdate(UtilisateurDTO utilisateurDTO) {
     }
 
     @Transactional(readOnly = true)
-public List<UtilisateurDTO> findAll() {
-    LOG.debug("Request to get all Utilisateurs (no pagination)");
-    return utilisateurRepository.findAll().stream()
-        .map(utilisateurMapper::toDto)
-        .collect(Collectors.toList());
-}
-@Transactional(readOnly = true)
-public Utilisateur getCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null || !authentication.isAuthenticated()) {
-        throw new RuntimeException("No authenticated user found");
+    public List<UtilisateurDTO> findAll() {
+        LOG.debug("Request to get all Utilisateurs (no pagination)");
+        return utilisateurRepository.findAll().stream()
+                .map(utilisateurMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    String username;
+    @Transactional(readOnly = true)
+    public Utilisateur getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    Object principal = authentication.getPrincipal();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found");
+        }
 
-    if (principal instanceof UserDetails) {
-        username = ((UserDetails) principal).getUsername();
-    } else {
-        username = principal.toString();
+        String username;
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        // Now find the user by username (email or login, depending on your setup)
+        return utilisateurRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
     }
-
-    // Now find the user by username (email or login, depending on your setup)
-    return utilisateurRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("User not found: " + username));
-}
 }

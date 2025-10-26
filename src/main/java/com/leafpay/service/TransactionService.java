@@ -52,19 +52,18 @@ public class TransactionService {
         this.compteRepository = compteRepository;
     }
 
-public void logTransaction(Compte source, Compte destination, BigDecimal montant, String type, String description) {
-    Transaction transaction = new Transaction();
-    transaction.setCompteSource(source);
-    transaction.setCompteDestination(destination);
-    transaction.setMontant(montant);
-    transaction.setTypeTransaction(type);
-    transaction.setLibelle(description);
-    transaction.setStatut("COMPLETED");
-    transaction.setDateTransaction(Instant.now());
+    public void logTransaction(Compte source, Compte destination, BigDecimal montant, String type, String description) {
+        Transaction transaction = new Transaction();
+        transaction.setCompteSource(source);
+        transaction.setCompteDestination(destination);
+        transaction.setMontant(montant);
+        transaction.setTypeTransaction(type);
+        transaction.setLibelle(description);
+        transaction.setStatut("COMPLETED");
+        transaction.setDateTransaction(Instant.now());
 
-    transactionRepository.save(transaction);
-}
-
+        transactionRepository.save(transaction);
+    }
 
     /**
      * Save a transaction.
@@ -146,203 +145,238 @@ public void logTransaction(Compte source, Compte destination, BigDecimal montant
         transactionRepository.deleteById(id);
     }
 
-@Transactional
-public void transferMoney(TransferRequestDTO transferRequest) {
-    // we take both accounts neede for the transaction
-    Compte fromAccount = compteRepository.findById(transferRequest.getFromAccountId())
-        .orElseThrow(() -> new BadRequestAlertException("Source account not found", "transaction", "fromaccnotfound"));
+    @Transactional
+    public void transferMoney(TransferRequestDTO transferRequest) {
+        Compte fromAccount = compteRepository.findById(transferRequest.getFromAccountId())
+                .orElseThrow(() -> new BadRequestAlertException("Source account not found", "transaction",
+                        "fromaccnotfound"));
 
-    Compte toAccount = compteRepository.findById(transferRequest.getToAccountId())
-        .orElseThrow(() -> new BadRequestAlertException("Destination account not found", "transaction", "toaccnotfound"));
+        Compte toAccount = compteRepository.findById(transferRequest.getToAccountId())
+                .orElseThrow(() -> new BadRequestAlertException("Destination account not found", "transaction",
+                        "toaccnotfound"));
 
-    //we get then do some checks on the sum(non null, is the number of mensual transactions not above the threshold, etc...)
-    BigDecimal montant = transferRequest.getAmount();
-    if (montant.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
-    }
-
-    if ("SAVINGS".equalsIgnoreCase(fromAccount.getTypeCompte()) || "STUDENT".equalsIgnoreCase(fromAccount.getTypeCompte())) {
-        long usage = countStudentOrSavingsOutTransactions(fromAccount.getId());
-        if (usage >= fromAccount.getLimiteRetraitsMensuels()) {
-            throw new BadRequestAlertException("Monthly transaction limit reached for this account", "transaction", "limitreached");
+        BigDecimal montant = transferRequest.getAmount();
+        if (montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
         }
-    }
 
-    // Check balance
-    if (fromAccount.getSolde().compareTo(montant) < 0) {
-        throw new BadRequestAlertException("Insufficient balance", "transaction", "insufficientbalance");
-    }
+        if ("SAVINGS".equalsIgnoreCase(fromAccount.getTypeCompte())
+                || "STUDENT".equalsIgnoreCase(fromAccount.getTypeCompte())) {
+            long usage = countStudentOrSavingsOutTransactions(fromAccount.getId());
+            if (usage >= fromAccount.getLimiteRetraitsMensuels()) {
+                throw new BadRequestAlertException("Monthly transaction limit reached for this account", "transaction",
+                        "limitreached");
+            }
+        }
 
-    // Then we perform balance update
-    fromAccount.setSolde(fromAccount.getSolde().subtract(montant));
-    toAccount.setSolde(toAccount.getSolde().add(montant));
-    compteRepository.save(fromAccount);
-    compteRepository.save(toAccount);
+        // If amount > 10,000, we do not perform the transfer now
+        if (montant.compareTo(new BigDecimal("10000")) > 0) {
+            Transaction transaction = new Transaction();
+            transaction.setMontant(montant);
+            transaction.setTypeTransaction("TRANSFER");
+            transaction.setDateTransaction(Instant.now());
+            transaction.setStatut("PENDING"); // Leave it pending
+            transaction.setCompteSource(fromAccount);
+            transaction.setCompteDestination(toAccount);
+            transaction.setJustificatif(transferRequest.getJustificatif());
+            transaction.setMoyenValidation(transferRequest.getMoyenValidation());
 
-    // Create and save transaction
-    Transaction transaction = new Transaction();
-    transaction.setMontant(montant);
-    transaction.setTypeTransaction("TRANSFER");
-    transaction.setDateTransaction(Instant.now());
+            transactionRepository.save(transaction);
+            return; // Exit without performing the transfer
+        }
 
-    if (montant.compareTo(new BigDecimal("10000")) > 0) {
-        transaction.setStatut("PENDING");
-    } else {
+        // Check balance
+        if (fromAccount.getSolde().compareTo(montant) < 0) {
+            throw new BadRequestAlertException("Insufficient balance", "transaction", "insufficientbalance");
+        }
+
+        // Perform the balance update
+
+        fromAccount.setSolde(fromAccount.getSolde().subtract(montant));
+        toAccount.setSolde(toAccount.getSolde().add(montant));
+        compteRepository.save(fromAccount);
+        compteRepository.save(toAccount);
+
+        // Créer la transaction avec statut COMPLETED
+        Transaction transaction = new Transaction();
+        transaction.setMontant(montant);
+        transaction.setTypeTransaction("TRANSFER");
+        transaction.setDateTransaction(Instant.now());
         transaction.setStatut("COMPLETED");
+        transaction.setCompteSource(fromAccount);
+        transaction.setCompteDestination(toAccount);
+        transaction.setJustificatif(transferRequest.getJustificatif());
+        transaction.setMoyenValidation(transferRequest.getMoyenValidation());
+
+        transactionRepository.save(transaction);
     }
-
-    transaction.setCompteSource(fromAccount);
-    transaction.setCompteDestination(toAccount);
-    transaction.setJustificatif(transferRequest.getJustificatif());
-    transaction.setMoyenValidation(transferRequest.getMoyenValidation());
-
-    transactionRepository.save(transaction);
-}
-
-
 
     public List<TransactionDTO> findByCompteId(Long compteId) {
-    return transactionRepository.findByCompteId(compteId)
-        .stream()
-        .map(transactionMapper::toDto)
-        .toList();
-}
-@Transactional
-public void withdraw(WithdrawalRequestDTO withdrawalRequest) {
-    Compte compte = compteRepository.findById(withdrawalRequest.getCompteId())
-            .orElseThrow(() -> new BadRequestAlertException("Account not found", "transaction", "accnotfound"));
-
-    BigDecimal montant = withdrawalRequest.getMontant();
-
-    if (montant.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
+        return transactionRepository.findByCompteId(compteId)
+                .stream()
+                .map(transactionMapper::toDto)
+                .toList();
     }
 
-    // Check balance
-    if (compte.getSolde().compareTo(montant) < 0) {
-        throw new BadRequestAlertException("Insufficient balance", "transaction", "insufficientbalance");
+    @Transactional
+    public void withdraw(WithdrawalRequestDTO withdrawalRequest) {
+        Compte compte = compteRepository.findById(withdrawalRequest.getCompteId())
+                .orElseThrow(() -> new BadRequestAlertException("Account not found", "transaction", "accnotfound"));
+
+        BigDecimal montant = withdrawalRequest.getMontant();
+
+        if (montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
+        }
+
+        // Check balance
+        if (compte.getSolde().compareTo(montant) < 0) {
+            throw new BadRequestAlertException("Insufficient balance", "transaction", "insufficientbalance");
+        }
+
+        // Check for withdrawal limits if savings account
+        if ("SAVINGS".equalsIgnoreCase(compte.getTypeCompte()) || "STUDENT".equalsIgnoreCase(compte.getTypeCompte())) {
+            long usage = countStudentOrSavingsOutTransactions(compte.getId());
+            if (usage >= compte.getLimiteRetraitsMensuels()) {
+                throw new BadRequestAlertException("Monthly transaction limit reached for this account", "transaction",
+                        "limitreached");
+            }
+        }
+
+        // TODO: Check other account specific rules like no overdraft for student, etc.
+
+        // Perform withdrawal
+        compte.setSolde(compte.getSolde().subtract(montant));
+        compteRepository.save(compte);
+
+        Transaction transaction = new Transaction();
+        transaction.setCompteSource(compte);
+        transaction.setMontant(montant);
+        transaction.setTypeTransaction(TypeTransaction.RETRAIT.name());
+        transaction.setDateTransaction(Instant.now());
+        transaction.setStatut("COMPLETED");
+
+        transactionRepository.save(transaction);
     }
 
-    // Check for withdrawal limits if savings account
-    if ("SAVINGS".equalsIgnoreCase(compte.getTypeCompte()) || "STUDENT".equalsIgnoreCase(compte.getTypeCompte())) {
-    long usage = countStudentOrSavingsOutTransactions(compte.getId());
-    if (usage >= compte.getLimiteRetraitsMensuels()) {
-        throw new BadRequestAlertException("Monthly transaction limit reached for this account", "transaction", "limitreached");
-    }
-}
+    @Transactional
+    public void deposit(DepositRequestDTO depositRequest) {
+        Compte compte = compteRepository.findById(depositRequest.getCompteId())
+                .orElseThrow(() -> new BadRequestAlertException("Account not found", "transaction", "accnotfound"));
 
+        BigDecimal montant = depositRequest.getMontant();
 
-    // TODO: Check other account specific rules like no overdraft for student, etc.
+        if (montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
+        }
 
-    // Perform withdrawal
-    compte.setSolde(compte.getSolde().subtract(montant));
-    compteRepository.save(compte);
+        compte.setSolde(compte.getSolde().add(montant));
+        compteRepository.save(compte);
 
-    Transaction transaction = new Transaction();
-    transaction.setCompteSource(compte);
-    transaction.setMontant(montant);
-    transaction.setTypeTransaction(TypeTransaction.RETRAIT.name());
-    transaction.setDateTransaction(Instant.now());
-    transaction.setStatut("COMPLETED");
+        Transaction transaction = new Transaction();
+        transaction.setCompteDestination(compte);
+        transaction.setMontant(montant);
+        transaction.setTypeTransaction(TypeTransaction.DEPOSIT.name());
+        transaction.setDateTransaction(Instant.now());
+        transaction.setStatut("COMPLETED");
 
-    transactionRepository.save(transaction);
-}
-
-
-@Transactional
-public void deposit(DepositRequestDTO depositRequest) {
-    Compte compte = compteRepository.findById(depositRequest.getCompteId())
-            .orElseThrow(() -> new BadRequestAlertException("Account not found", "transaction", "accnotfound"));
-
-    BigDecimal montant = depositRequest.getMontant();
-
-    if (montant.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new BadRequestAlertException("Amount must be positive", "transaction", "invalidmontant");
+        transactionRepository.save(transaction);
     }
 
-    compte.setSolde(compte.getSolde().add(montant));
-    compteRepository.save(compte);
+    @Transactional(readOnly = true)
+    public int countMonthlyWithdrawals(Long compteId) {
+        Instant startOfMonth = LocalDateTime.now()
+                .withDayOfMonth(1)
+                .toInstant(ZoneOffset.UTC);
 
-    Transaction transaction = new Transaction();
-    transaction.setCompteDestination(compte);
-    transaction.setMontant(montant);
-    transaction.setTypeTransaction(TypeTransaction.DEPOSIT.name());
-    transaction.setDateTransaction(Instant.now());
-    transaction.setStatut("COMPLETED");
+        return transactionRepository.countByCompteSourceIdAndTypeTransactionAndDateTransactionAfter(
+                compteId, TypeTransaction.RETRAIT.name(), startOfMonth);
+    }
 
-    transactionRepository.save(transaction);
-}
+    @Transactional(readOnly = true)
+    public long countStudentOrSavingsOutTransactions(Long compteId) {
+        LocalDate now = LocalDate.now();
+        Instant start = getStartOfTransactionCycle(now);
+        Instant end = getEndOfTransactionCycle(now);
 
-@Transactional(readOnly = true)
-public int countMonthlyWithdrawals(Long compteId) {
-    Instant startOfMonth = LocalDateTime.now()
-        .withDayOfMonth(1)
-        .toInstant(ZoneOffset.UTC);
+        return transactionRepository.countOutgoingTransactionsWithinPeriod(
+                compteId, start, end);
+    }
 
-    return transactionRepository.countByCompteSourceIdAndTypeTransactionAndDateTransactionAfter(
-        compteId, TypeTransaction.RETRAIT.name(), startOfMonth);
-}
-@Transactional(readOnly = true)
-public long countStudentOrSavingsOutTransactions(Long compteId) {
-    LocalDate now = LocalDate.now();
-    Instant start = getStartOfTransactionCycle(now);
-    Instant end = getEndOfTransactionCycle(now);
-
-    return transactionRepository.countOutgoingTransactionsWithinPeriod(
-        compteId, start, end);
-}
-
-public List<TransactionDTO> findImportantTransactions() {
+    public List<TransactionDTO> findImportantTransactions() {
         List<Transaction> importantTransactions = transactionRepository.findImportantTransactions();
         return importantTransactions.stream()
-            .map(transactionMapper::toDto) // assuming you have a mapper
-            .collect(Collectors.toList());
+                .map(transactionMapper::toDto) // assuming you have a mapper
+                .collect(Collectors.toList());
     }
 
+    @Transactional
     public TransactionDTO validateTransaction(Long id) {
         Transaction transaction = transactionRepository.findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Transaction not found", "transaction", "idnotfound"));
+                .orElseThrow(() -> new BadRequestAlertException("Transaction not found", "transaction", "idnotfound"));
 
-        // Set status to approved or validated flag here, adjust as per your model
+        if (!"PENDING".equals(transaction.getStatut())) {
+            throw new BadRequestAlertException("Transaction is not pending", "transaction", "notpending");
+        }
+
+        Compte fromAccount = transaction.getCompteSource();
+        Compte toAccount = transaction.getCompteDestination();
+        BigDecimal montant = transaction.getMontant();
+
+        // Vérifier amount in the bank account
+        if (fromAccount.getSolde().compareTo(montant) < 0) {
+            throw new BadRequestAlertException("Insufficient balance for validation", "transaction",
+                    "insufficientbalance");
+        }
+
+        // Do the transfer
+        fromAccount.setSolde(fromAccount.getSolde().subtract(montant));
+        toAccount.setSolde(toAccount.getSolde().add(montant));
+        compteRepository.save(fromAccount);
+        compteRepository.save(toAccount);
+
+        // UPdate status
         transaction.setStatut("VALIDATED");
+        Transaction saved = transactionRepository.save(transaction);
+
+        return transactionMapper.toDto(saved);
+    }
+
+    public TransactionDTO rejectTransaction(Long id, String reason) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new BadRequestAlertException("Transaction not found", "transaction", "idnotfound"));
+
+        transaction.setStatut("REJECTED");
+        transaction.setLibelle(reason); // Optional: attach rejection reason
 
         Transaction saved = transactionRepository.save(transaction);
         return transactionMapper.toDto(saved);
     }
-public TransactionDTO rejectTransaction(Long id, String reason) {
-    Transaction transaction = transactionRepository.findById(id)
-        .orElseThrow(() -> new BadRequestAlertException("Transaction not found", "transaction", "idnotfound"));
-
-    transaction.setStatut("REJECTED");
-    transaction.setLibelle(reason); // Optional: attach rejection reason
-
-    Transaction saved = transactionRepository.save(transaction);
-    return transactionMapper.toDto(saved);
-}
 
     public List<TransactionDTO> findImportantPendingTransactions() {
-    BigDecimal threshold = new BigDecimal("10000");
-    List<Transaction> transactions = transactionRepository.findByMontantGreaterThanAndStatut(threshold, "PENDING");
-    return transactions.stream().map(transactionMapper::toDto).collect(Collectors.toList());
-}
-private Instant getStartOfTransactionCycle(LocalDate currentDate) {
-    LocalDateTime startDateTime;
-    if (currentDate.getDayOfMonth() < 4) {
-        startDateTime = currentDate.minusMonths(1).withDayOfMonth(4).atStartOfDay();
-    } else {
-        startDateTime = currentDate.withDayOfMonth(4).atStartOfDay();
+        BigDecimal threshold = new BigDecimal("10000");
+        List<Transaction> transactions = transactionRepository.findByMontantGreaterThanAndStatut(threshold, "PENDING");
+        return transactions.stream().map(transactionMapper::toDto).collect(Collectors.toList());
     }
-    return startDateTime.toInstant(ZoneOffset.UTC);
-}
 
-private Instant getEndOfTransactionCycle(LocalDate currentDate) {
-    LocalDateTime startDateTime;
-    if (currentDate.getDayOfMonth() < 4) {
-        startDateTime = currentDate.minusMonths(1).withDayOfMonth(4).atStartOfDay();
-    } else {
-        startDateTime = currentDate.withDayOfMonth(4).atStartOfDay();
+    private Instant getStartOfTransactionCycle(LocalDate currentDate) {
+        LocalDateTime startDateTime;
+        if (currentDate.getDayOfMonth() < 4) {
+            startDateTime = currentDate.minusMonths(1).withDayOfMonth(4).atStartOfDay();
+        } else {
+            startDateTime = currentDate.withDayOfMonth(4).atStartOfDay();
+        }
+        return startDateTime.toInstant(ZoneOffset.UTC);
     }
-    LocalDateTime endDateTime = startDateTime.plusMonths(1).minusSeconds(1);
-    return endDateTime.toInstant(ZoneOffset.UTC);
-}
+
+    private Instant getEndOfTransactionCycle(LocalDate currentDate) {
+        LocalDateTime startDateTime;
+        if (currentDate.getDayOfMonth() < 4) {
+            startDateTime = currentDate.minusMonths(1).withDayOfMonth(4).atStartOfDay();
+        } else {
+            startDateTime = currentDate.withDayOfMonth(4).atStartOfDay();
+        }
+        LocalDateTime endDateTime = startDateTime.plusMonths(1).minusSeconds(1);
+        return endDateTime.toInstant(ZoneOffset.UTC);
+    }
 }

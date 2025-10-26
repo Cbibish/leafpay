@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
+         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+
+  <graph id="G" edgedefault="directed">
+
+    <!-- Nodes for entities -->
+    <node id="Role">
+      <data key="label">Role
+- nom: String (max 50)</data>
+    </node>
+
+    <node id="Utilisateur">
+      <data key="label">Utilisateur
+- nom: String (max 100)
+- prenom: String (max 100)
+- email: String (max 255)
+- motDePasse: String (max 255)
+- dateNaissance: LocalDate
+- typeJustificatifAge: String (max 255)
+- statut: String (max 50)
+- dateCreation: Instant</data>
+    </node>
+
+    <node id="Compte">
+      <data key="label">Compte
+- typeCompte: String (max 50)
+- solde: BigDecimal
+- plafondTransaction: BigDecimal
+- limiteRetraitsMensuels: Integer
+- tauxInteret: BigDecimal
+- dateOuverture: Instant
+- dateFermeture: Instant
+- statut: String (max 50)
+- iban: String (max 34)</data>
+    </node>
+
+    <node id="UtilisateurCompte">
+      <data key="label">UtilisateurCompte
+- roleUtilisateurSurCeCompte: String (max 100)</data>
+    </node>
+
+    <node id="Transaction">
+      <data key="label">Transaction
+- montant: BigDecimal
+- typeTransaction: String (max 50)
+- dateTransaction: Instant
+- statut: String (max 50)
+- moyenValidation: String (max 255)
+- justificatif: TextBlob</data>
+    </node>
+
+    <node id="Log">
+      <data key="label">Log
+- action: String (max 255)
+- timestamp: Instant
+- ipUtilisateur: String (max 50)
+- resultat: String (max 50)
+- description: TextBlob</data>
+    </node>
+
+    <node id="AlerteSecurite">
+      <data key="label">AlerteSecurite
+- typeAlerte: String (max 100)
+- niveauSeverite: String (max 50)
+- timestamp: Instant
+- estTraitee: Boolean</data>
+    </node>
+
+    <!-- Edges for relationships (ManyToOne) -->
+    <edge id="e1" source="Utilisateur" target="Role">
+      <data key="label">ManyToOne</data>
+    </edge>
+
+    <edge id="e2" source="Log" target="Utilisateur">
+      <data key="label">ManyToOne</data>
+    </edge>
+
+    <edge id="e3" source="AlerteSecurite" target="Utilisateur">
+      <data key="label">ManyToOne</data>
+    </edge>
+
+    <edge id="e4" source="Transaction" target="Compte">
+      <data key="label">compteSource ManyToOne</data>
+    </edge>
+
+    <edge id="e5" source="Transaction" target="Compte">
+      <data key="label">compteDestination ManyToOne</data>
+    </edge>
+
+    <edge id="e6" source="UtilisateurCompte" target="Utilisateur">
+      <data key="label">ManyToOne</data>
+    </edge>
+
+    <edge id="e7" source="UtilisateurCompte" target="Compte">
+      <data key="label">ManyToOne</data>
+    </edge>
+
+  </graph>
+</graphml>

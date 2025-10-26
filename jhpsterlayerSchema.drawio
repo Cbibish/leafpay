@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="JHipster Layered Architecture" id="xJ1PjaT1VwDkS5e5Qg6U">
+    <mxGraphModel dx="1516" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Presentation Layer -->
+        <mxCell id="2" value="Presentation Layer (Angular)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="220" y="60" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- REST API Layer -->
+        <mxCell id="3" value="REST API (Spring REST Controllers)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="220" y="140" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Service Layer -->
+        <mxCell id="4" value="Service Layer (Business Logic)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="220" y="220" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- DTOs and Mappers -->
+        <mxCell id="5" value="DTOs &amp; Mappers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="220" y="300" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Repository Layer -->
+        <mxCell id="6" value="Repository Layer (Spring Data JPA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="220" y="380" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Domain / Entity Layer -->
+        <mxCell id="7" value="Domain Layer (JPA Entities)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="220" y="460" width="400" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Database -->
+        <mxCell id="8" value="Database (MySQL/PostgreSQL)" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#e1e1e1;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="270" y="540" width="300" height="60" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -42,12 +42,11 @@ public class CompteService {
     private final TransactionService transactionService;
 
     public CompteService(
-        CompteRepository compteRepository,
-        UtilisateurRepository utilisateurRepository,
-        UtilisateurCompteRepository utilisateurCompteRepository,
-        CompteMapper compteMapper,
-        TransactionService transactionService
-    ) {
+            CompteRepository compteRepository,
+            UtilisateurRepository utilisateurRepository,
+            UtilisateurCompteRepository utilisateurCompteRepository,
+            CompteMapper compteMapper,
+            TransactionService transactionService) {
         this.compteRepository = compteRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurCompteRepository = utilisateurCompteRepository;
@@ -88,14 +87,14 @@ public class CompteService {
     public Optional<CompteDTO> partialUpdate(CompteDTO compteDTO) {
 
         return compteRepository
-            .findById(compteDTO.getId())
-            .map(existingCompte -> {
-                compteMapper.partialUpdate(existingCompte, compteDTO);
+                .findById(compteDTO.getId())
+                .map(existingCompte -> {
+                    compteMapper.partialUpdate(existingCompte, compteDTO);
 
-                return existingCompte;
-            })
-            .map(compteRepository::save)
-            .map(compteMapper::toDto);
+                    return existingCompte;
+                })
+                .map(compteRepository::save)
+                .map(compteMapper::toDto);
     }
 
     /**
@@ -130,62 +129,63 @@ public class CompteService {
     }
 
     public Optional<CompteDTO> deposit(Long compteId, BigDecimal montant) {
-    return compteRepository.findById(compteId).map(compte -> {
-        compte.setSolde(compte.getSolde().add(montant));
-        compteRepository.save(compte);
+        return compteRepository.findById(compteId).map(compte -> {
+            compte.setSolde(compte.getSolde().add(montant));
+            compteRepository.save(compte);
 
-        // Log transaction
-        transactionService.logTransaction(compte, null, montant, "DEPOT", "User deposit");
+            // Log transaction
+            transactionService.logTransaction(compte, null, montant, "DEPOT", "User deposit");
 
-        return compteMapper.toDto(compte);
-    });
-}
+            return compteMapper.toDto(compte);
+        });
+    }
 
-public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
-    return compteRepository.findById(compteId).filter(c -> c.getSolde().compareTo(montant) >= 0).map(compte -> {
-        compte.setSolde(compte.getSolde().subtract(montant));
-        compteRepository.save(compte);
+    public Optional<CompteDTO> withdraw(Long compteId, BigDecimal montant) {
+        return compteRepository.findById(compteId).filter(c -> c.getSolde().compareTo(montant) >= 0).map(compte -> {
+            compte.setSolde(compte.getSolde().subtract(montant));
+            compteRepository.save(compte);
 
-        // Log transaction
-        transactionService.logTransaction(compte, null, montant, "RETRAIT", "User withdrawal");
+            // Log transaction
+            transactionService.logTransaction(compte, null, montant, "RETRAIT", "User withdrawal");
 
-        return compteMapper.toDto(compte);
-    });
-}
-
+            return compteMapper.toDto(compte);
+        });
+    }
 
     public List<CompteDTO> getActiveAccounts() {
         List<Compte> comptes = compteRepository.findByDateFermetureIsNull();
         return comptes.stream()
-            .map(compteMapper::toDto)
-            .collect(Collectors.toList());
+                .map(compteMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     public CompteDTO deactivateAccount(Long compteId, Instant fermetureDate) {
-    Compte compte = compteRepository.findById(compteId)
-        .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
+        Compte compte = compteRepository.findById(compteId)
+                .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
 
-    Instant fermetureInstant = fermetureDate.atZone(ZoneId.systemDefault()).toInstant();
-    compte.setDateFermeture(fermetureInstant);
-    Compte saved = compteRepository.save(compte);
-    return compteMapper.toDto(saved);
-}
-public Optional<CompteDTO> findByIban(String iban) {
-    return compteRepository.findByIban(iban).map(compteMapper::toDto);
-}
-@Transactional
-public void linkCompteToUser(Long compteId, Long userId) {
-    Compte compte = compteRepository.findById(compteId)
-        .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
-    Utilisateur utilisateur = utilisateurRepository.findById(userId)
-        .orElseThrow(() -> new BadRequestAlertException("Utilisateur not found", "utilisateur", "idnotfound"));
+        Instant fermetureInstant = fermetureDate.atZone(ZoneId.systemDefault()).toInstant();
+        compte.setDateFermeture(fermetureInstant);
+        Compte saved = compteRepository.save(compte);
+        return compteMapper.toDto(saved);
+    }
 
-    UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
-    utilisateurCompte.setCompte(compte);
-    utilisateurCompte.setUtilisateur(utilisateur);
-    // No role set
+    public Optional<CompteDTO> findByIban(String iban) {
+        return compteRepository.findByIban(iban).map(compteMapper::toDto);
+    }
 
-    utilisateurCompteRepository.save(utilisateurCompte);
-}
+    @Transactional
+    public void linkCompteToUser(Long compteId, Long userId) {
+        Compte compte = compteRepository.findById(compteId)
+                .orElseThrow(() -> new BadRequestAlertException("Compte not found", "compte", "idnotfound"));
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestAlertException("Utilisateur not found", "utilisateur", "idnotfound"));
+
+        UtilisateurCompte utilisateurCompte = new UtilisateurCompte();
+        utilisateurCompte.setCompte(compte);
+        utilisateurCompte.setUtilisateur(utilisateur);
+        // No role set
+
+        utilisateurCompteRepository.save(utilisateurCompte);
+    }
 
 }

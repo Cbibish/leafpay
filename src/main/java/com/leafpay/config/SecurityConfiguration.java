@@ -40,50 +40,50 @@ public class SecurityConfiguration {
     }
 
     @Bean
-public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
-    http
-            .cors(withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authz -> authz
-                    .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/authenticate"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/authenticate"))
-                    .permitAll()
-                    // Allow swagger and openapi docs without auth:
-                    .requestMatchers(mvc.pattern("/v3/api-docs/**"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/swagger-ui.html"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/swagger-ui/**"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/utilisateurs"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/roles"))  // <-- Added this line
-                    .permitAll()
-                    // Admin endpoints
-                    .requestMatchers(mvc.pattern("/api/admin/**"))
-                    .hasAuthority(AuthoritiesConstants.ADMIN)
-                    // Secure API endpoints
-                    .requestMatchers(mvc.pattern("/api/**"))
-                    .authenticated()
-                    // Management endpoints
-                    .requestMatchers(mvc.pattern("/management/health"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/management/health/**"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/management/info"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/management/prometheus"))
-                    .permitAll()
-                    .requestMatchers(mvc.pattern("/management/**"))
-                    .hasAuthority(AuthoritiesConstants.ADMIN))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exceptions -> exceptions
-                    .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                    .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
-    return http.build();
-}
+    public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+        http
+                .cors(withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/authenticate"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/authenticate"))
+                        .permitAll()
+                        // Allow swagger and openapi docs without auth:
+                        .requestMatchers(mvc.pattern("/v3/api-docs/**"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/swagger-ui.html"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/swagger-ui/**"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/utilisateurs"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/roles"))
+                        .permitAll()
+                        // Admin endpoints
+                        .requestMatchers(mvc.pattern("/api/admin/**"))
+                        .hasAuthority(AuthoritiesConstants.ADMIN)
+                        // Secure API endpoints
+                        .requestMatchers(mvc.pattern("/api/**"))
+                        .authenticated()
+                        // Management endpoints
+                        .requestMatchers(mvc.pattern("/management/health"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/management/health/**"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/management/info"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/management/prometheus"))
+                        .permitAll()
+                        .requestMatchers(mvc.pattern("/management/**"))
+                        .hasAuthority(AuthoritiesConstants.ADMIN))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

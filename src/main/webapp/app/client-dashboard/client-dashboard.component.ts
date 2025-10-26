@@ -46,7 +46,7 @@ export class ClientDashboardComponent implements OnInit {
 
   showTransferForm = false;
   ibanValid = false;
-  ibanCheckMessage: string = '';
+  ibanCheckMessage = '';
   showLinkModal = false;
 
   transferForm = {
@@ -62,9 +62,9 @@ export class ClientDashboardComponent implements OnInit {
   transferMessage = '';
   transferSuccess = false;
 
-  linkIban: string = '';
-  linkMessage: string = '';
-  linkSuccess: boolean = false;
+  linkIban = '';
+  linkMessage = '';
+  linkSuccess = false;
 
   constructor(
     private accountService: AccountService,
@@ -73,7 +73,7 @@ export class ClientDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.accountService.identity().subscribe(account => {
-      if (account && account.id) {
+      if (account?.id) {
         this.isProfessional = account.authorities.includes('ROLE_PROFESSIONAL_USER');
         this.currentUserId = account.id;
         this.loadComptes(account.id);
@@ -284,7 +284,7 @@ export class ClientDashboardComponent implements OnInit {
     }
 
     const fromAccount = this.comptes.find(c => c.compteId === f.fromAccountId);
-    if (!fromAccount || !fromAccount.iban) {
+    if (!fromAccount?.iban) {
       this.transferMessage = "IBAN de l'expéditeur introuvable.";
       this.transferSuccess = false;
       return;
