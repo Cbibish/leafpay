@@ -18,7 +18,7 @@ import SharedModule from 'app/shared/shared.module';
 import PasswordStrengthBarComponent from '../password/password-strength-bar/password-strength-bar.component';
 import { RegisterService } from './register.service';
 
-type Role = 'PROFESSIONAL_USER' | 'STUDENT_USER' | 'NORMAL_USER';
+type Role = 'PROFESSIONAL_USER' | 'STUDENT_USER' | 'USER';
 
 @Component({
   selector: 'jhi-register',
@@ -46,7 +46,7 @@ export default class RegisterComponent implements AfterViewInit {
   private allowedAccountTypesByRole: Record<Role, string[]> = {
     PROFESSIONAL_USER: ['Professional', 'Savings'],
     STUDENT_USER: ['Student', 'Savings'],
-    NORMAL_USER: ['Normal', 'Savings'],
+    USER: ['Normal', 'Savings'],
   };
 
   constructor() {
@@ -136,8 +136,15 @@ export default class RegisterComponent implements AfterViewInit {
 
   loadRoles(): void {
     this.registerService.getRoles().subscribe((roles: any[]) => {
-      const validRoles: Role[] = ['NORMAL_USER', 'PROFESSIONAL_USER', 'STUDENT_USER'];
-      this.roles.set(roles.map(r => r.nom).filter((nom: string) => validRoles.includes(nom as Role)));
+      const backendToFrontendMap: Record<string, Role> = {
+        USER: 'USER',
+        PROFESSIONAL_USER: 'PROFESSIONAL_USER',
+        STUDENT_USER: 'STUDENT_USER',
+      };
+
+      const mappedRoles = roles.map(r => backendToFrontendMap[r.nom]).filter((nom): nom is Role => !!nom);
+
+      this.roles.set(mappedRoles);
     });
   }
 
@@ -175,7 +182,7 @@ export default class RegisterComponent implements AfterViewInit {
     const formValue = this.registerForm.getRawValue();
 
     const roleIdMap: Record<Role, string> = {
-      NORMAL_USER: '1501',
+      USER: '1501',
       PROFESSIONAL_USER: '1502',
       STUDENT_USER: '1505',
     };

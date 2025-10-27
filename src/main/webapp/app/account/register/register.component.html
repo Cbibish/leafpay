@@ -55,7 +55,7 @@
         <label for="role" class="form-label" jhiTranslate="register.role.label">Type d'utilisateur</label>
         <select id="role" class="form-control" formControlName="role">
           <option *ngFor="let r of roles()" [value]="r">
-            {{ r === 'NORMAL_USER' ? 'Normal' : r === 'PROFESSIONAL_USER' ? 'Professionnel' : 'Étudiant' }}
+            {{ r === 'USER' ? 'Normal' : r === 'PROFESSIONAL_USER' ? 'Professionnel' : 'Étudiant' }}
           </option>
         </select>
       </div>

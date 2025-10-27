@@ -54,7 +54,15 @@ export default class LoginComponent implements OnInit, AfterViewInit {
 
       if (userRole === 'ADMIN' || userRole === 'CONSEILLER') {
         this.router.navigate(['/admin/admin-dashboard']);
-      } else if (userRole === 'NORMAL_USER' || userRole === 'PROFESSIONAL_USER' || userRole === 'STUDENT_USER') {
+      } else if (
+        userRole === 'ROLE_USER' ||
+        userRole === 'USER' ||
+        userRole === 'NORMAL_USER' ||
+        userRole === 'PROFESSIONAL_USER' ||
+        userRole === 'STUDENT_USER' ||
+        userRole === 'ROLE_PROFESSIONAL_USER' ||
+        userRole === 'ROLE_STUDENT_USER'
+      ) {
         this.router.navigate(['/client-dashboard']);
       } else {
         this.router.navigate(['/']); // fallback

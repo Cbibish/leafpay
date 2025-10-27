@@ -38,7 +38,7 @@ const routes: Routes = [
     loadComponent: () => import(`./client-dashboard/client-dashboard.component`).then(m => m.ClientDashboardComponent),
     title: 'client-dashboard.title',
     data: {
-      authorities: [Authority.USER],
+      authorities: [Authority.NORMAL_USER, Authority.USER, Authority.PROFESSIONAL_USER, Authority.STUDENT_USER],
     },
     canActivate: [UserRouteAccessService],
   },
@@ -47,7 +47,14 @@ const routes: Routes = [
     loadComponent: () => import(`./profile/profile.component`).then(m => m.ProfileComponent),
     title: 'profile.title',
     data: {
-      authorities: [Authority.USER, Authority.ADMIN, Authority.CONSEILLER],
+      authorities: [
+        Authority.USER,
+        Authority.NORMAL_USER,
+        Authority.ADMIN,
+        Authority.CONSEILLER,
+        Authority.PROFESSIONAL_USER,
+        Authority.STUDENT_USER,
+      ],
     },
     canActivate: [UserRouteAccessService],
   },
